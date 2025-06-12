@@ -153,14 +153,14 @@
 
     <script>
         // --- GLOBAL STATE ---
-        let allFiles = [];
-        let filteredFiles = [];
-        let currentPage = 1;
+        var allFiles = [];
+        var filteredFiles = [];
+        var currentPage = 1;
         const itemsPerPage = 10;
         
         // --- KAIOS KEYBOARD STATE ---
-        let currentIndex = -1; // -1 for search box, 0+ for list items
-        let currentFocus = 'search'; // 'search', 'list', 'modal'
+        var currentIndex = -1; // -1 for search box, 0+ for list items
+        var currentFocus = 'search'; // 'search', 'list', 'modal'
 
         // --- CORE LOGIC ---
         window.onload = () => {
@@ -264,7 +264,7 @@
                 } else {
                     // **FIX:** Hide the modal cleanly before starting the redirect.
                     document.getElementById('extraction-modal').style.display = 'none';
-                    const redirectUrl = `main.html?jarlink=${encodeURIComponent(fullUrl)}&midlet=${encodeURIComponent(midletName)}`;
+                    const redirectUrl = `main.html?jarlink=${encodeURIComponent(+'jars/'+fullUrl.substring(filePath.lastIndexOf('/') + 1))}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
                 }
             });
@@ -389,7 +389,7 @@
                         if (!manifestFile) return callback(new Error("META-INF/MANIFEST.MF not found."), null);
                         manifestFile.async("string").then(function(content) {
                             const lines = content.split(/\r?\n/);
-                            let midletLine = lines.find(line => line.match(/^MIDlet-\d+:/));
+                            var midletLine = lines.find(line => line.match(/^MIDlet-\d+:/));
                             if (!midletLine) return callback(new Error("MIDlet-N attribute not found."), null);
                             const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
                             if (parts.length < 3) return callback(new Error("Malformed MIDlet attribute line."), null);
