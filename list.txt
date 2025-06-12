@@ -1,1 +1,1 @@
-fast.jar
+jars/ftu.jar
