@@ -24,7 +24,6 @@
             color: var(--text-color);
             margin: 0;
             padding: 0;
-            /* Prevent scrolling body with D-Pad */
             height: 100vh;
             overflow: hidden;
             display: flex;
@@ -33,7 +32,7 @@
 
         .main-content {
             flex-grow: 1;
-            overflow-y: auto; /* Allow this part to scroll */
+            overflow-y: auto;
             padding: 10px;
         }
 
@@ -56,7 +55,7 @@
             color: var(--text-color);
             font-size: 1em;
         }
-        #search-box:focus {
+        #search-box:focus, #search-box.selected {
             border-color: var(--highlight-color);
             outline: none;
         }
@@ -77,7 +76,6 @@
             transition: background-color 0.1s;
         }
         
-        /* Highlight for the selected item (for D-pad navigation) */
         #file-list li.selected {
             background-color: var(--primary-color);
             color: var(--background-color);
@@ -91,7 +89,6 @@
             font-size: 0.9em;
         }
 
-        /* --- Modal --- */
         .modal {
             display: none;
             position: fixed;
@@ -101,7 +98,6 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.7);
-            display: none;
             align-items: center;
             justify-content: center;
         }
@@ -115,7 +111,6 @@
         }
         .modal-content p { margin: 15px 0; }
 
-        /* --- Softkey Bar for KaiOS --- */
         .softkey-bar {
             position: fixed;
             bottom: 0;
@@ -144,14 +139,12 @@
         <ul id="file-list"></ul>
     </div>
 
-    <!-- The Modal Popup -->
     <div id="extraction-modal" class="modal">
         <div class="modal-content">
             <p id="modal-message">Extracting MIDlet...</p>
         </div>
     </div>
     
-    <!-- Softkey Bar -->
     <div class="softkey-bar">
         <span id="softkey-left"></span>
         <span id="softkey-center" class="softkey-center"></span>
@@ -174,8 +167,25 @@
             fetchFileList();
             window.addEventListener('keydown', handleKeyDown);
             document.getElementById('search-box').focus();
-            updateSoftkeys();
+            updateSelection(); // Changed from updateSoftkeys() to ensure search box is highlighted on load
         };
+        
+        // **FIX:** Add a pageshow listener to reset state when navigating back to the page
+        window.addEventListener('pageshow', (event) => {
+            // The event.persisted property is true if the page is being loaded from the cache.
+            if (event.persisted) {
+                // Hide any stale modals
+                document.getElementById('extraction-modal').style.display = 'none';
+                
+                // Reset search bar
+                const searchBox = document.getElementById('search-box');
+                searchBox.value = '';
+                
+                // Re-trigger the filter logic to show all files and reset the view
+                handleSearch();
+            }
+        });
+
 
         function fetchFileList() {
             const xhr = new XMLHttpRequest();
@@ -184,7 +194,7 @@
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '');
                     filteredFiles = allFiles;
-                    renderPage();
+                    renderPage(true); // Initial render should keep focus on search
                 } else if (xhr.readyState === 4) {
                     document.getElementById('file-list').innerHTML = '<li>Error loading file list.</li>';
                 }
@@ -192,7 +202,8 @@
             xhr.send();
         }
 
-        function renderPage() {
+        // **FIX:** Added 'keepFocusOnSearch' parameter to prevent stealing focus while typing.
+        function renderPage(keepFocusOnSearch = false) {
             const listElement = document.getElementById('file-list');
             listElement.innerHTML = '';
 
@@ -206,35 +217,41 @@
             const endIndex = startIndex + itemsPerPage;
             const pageItems = filteredFiles.slice(startIndex, endIndex);
 
-            for (let i = 0; i < pageItems.length; i++) {
-                const filePath = pageItems[i];
+            pageItems.forEach(filePath => {
                 const fileName = filePath.substring(filePath.lastIndexOf('/') + 1).replace('.jar', '');
                 const listItem = document.createElement('li');
                 listItem.textContent = fileName;
                 listItem.setAttribute('data-path', filePath);
                 listItem.onclick = () => handleFileClick(filePath);
                 listElement.appendChild(listItem);
-            }
+            });
+            
             renderPagination();
-            // After rendering, reset focus to the first item on the new page
-            currentIndex = 0;
-            currentFocus = 'list';
+            
+            if (!keepFocusOnSearch) {
+                // After changing pages, focus on the first item in the list
+                currentFocus = 'list';
+                currentIndex = 0;
+            } else {
+                // After searching, keep focus on search, but reset list index
+                currentFocus = 'search';
+                currentIndex = -1;
+            }
             updateSelection();
         }
 
         function renderPagination() {
             const paginationElement = document.getElementById('pagination');
             const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-            paginationElement.innerHTML = '';
-            if (totalPages <= 1) return;
-            paginationElement.textContent = `Page ${currentPage} of ${totalPages}`;
+            paginationElement.innerHTML = (totalPages > 1) ? `Page ${currentPage} of ${totalPages}` : '';
         }
         
         function handleSearch() {
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.toLowerCase().includes(searchTerm));
             currentPage = 1;
-            renderPage();
+            // Re-render the page but signal to keep focus on the search box
+            renderPage(true);
         }
 
         function handleFileClick(filePath) {
@@ -245,6 +262,8 @@
                 if (error) {
                     showModal(`Error: ${error.message}`, true);
                 } else {
+                    // **FIX:** Hide the modal cleanly before starting the redirect.
+                    document.getElementById('extraction-modal').style.display = 'none';
                     const redirectUrl = `main.html?jarlink=${encodeURIComponent(fullUrl)}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
                 }
@@ -252,7 +271,6 @@
         }
 
         // --- KAIOS KEYBOARD CONTROL ---
-
         function handleKeyDown(event) {
             if (currentFocus === 'modal') {
                 if (event.key === 'Enter' || event.key === 'Backspace') {
@@ -261,20 +279,19 @@
                 return;
             }
             
-            // Prevent default scroll on arrow keys
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
             }
 
             switch (event.key) {
                 case 'ArrowDown':
-                    if (currentFocus === 'search') {
+                    if (currentFocus === 'search' && filteredFiles.length > 0) {
                         currentFocus = 'list';
                         currentIndex = 0;
-                    } else if (currentFocus === 'list' && filteredFiles.length > 0) {
-                        currentIndex++;
-                        if (currentIndex >= document.getElementById('file-list').children.length) {
-                             currentIndex = 0; // Wrap to top
+                    } else if (currentFocus === 'list') {
+                        const listLength = document.getElementById('file-list').children.length;
+                        if (listLength > 0) {
+                            currentIndex = (currentIndex + 1) % listLength;
                         }
                     }
                     updateSelection();
@@ -283,11 +300,7 @@
                     if (currentFocus === 'list') {
                         currentIndex--;
                         if (currentIndex < 0) {
-                             const listItems = document.getElementById('file-list').children;
-                             currentIndex = listItems.length > 0 ? listItems.length - 1 : -1; // Wrap to bottom
-                        }
-                        if (currentIndex === -1) {
-                            currentFocus = 'search';
+                             currentFocus = 'search';
                         }
                     }
                     updateSelection();
@@ -308,32 +321,27 @@
                 case 'Enter':
                     if (currentFocus === 'list' && currentIndex > -1) {
                         const selectedItem = document.getElementById('file-list').children[currentIndex];
-                        if (selectedItem) {
-                            selectedItem.click();
-                        }
+                        selectedItem?.click();
                     }
                     break;
             }
         }
 
         function updateSelection() {
+            const searchBox = document.getElementById('search-box');
             const listItems = document.getElementById('file-list').children;
             
-            // Unselect all items
-            for (let i = 0; i < listItems.length; i++) {
-                listItems[i].classList.remove('selected');
-            }
-            document.getElementById('search-box').style.borderColor = 'var(--border-color)';
-
+            Array.from(listItems).forEach(item => item.classList.remove('selected'));
+            searchBox.classList.remove('selected');
+            
             if (currentFocus === 'search') {
-                document.getElementById('search-box').focus();
-                document.getElementById('search-box').style.borderColor = 'var(--highlight-color)';
+                searchBox.classList.add('selected');
+                searchBox.focus();
             } else if (currentFocus === 'list' && currentIndex > -1 && listItems[currentIndex]) {
-                document.getElementById('search-box').blur();
+                searchBox.blur();
                 const selectedItem = listItems[currentIndex];
                 selectedItem.classList.add('selected');
-                // Scroll item into view if needed
-                selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
             updateSoftkeys();
         }
@@ -348,64 +356,43 @@
                 center.textContent = 'CLOSE';
                 right.textContent = '';
             } else {
-                left.textContent = 'Options'; // Placeholder
-                center.textContent = 'SELECT';
-                right.textContent = 'Exit'; // Placeholder
+                left.textContent = 'Options';
+                center.textContent = (currentFocus === 'list') ? 'SELECT' : '';
+                right.textContent = 'Exit';
             }
         }
         
         // --- MODAL & EXTRACTION ---
-
         function showModal(message, isError = false) {
             currentFocus = 'modal';
             document.getElementById('modal-message').textContent = message;
             document.getElementById('extraction-modal').style.display = 'flex';
             updateSoftkeys();
-            // In a real KaiOS app, a "Close" button might not be needed if the center key handles it.
-            // But we'll leave the logic in place.
         }
 
         function closeModal() {
-            currentFocus = 'list';
+            // Restore focus to the list or search box depending on what was last active
+            currentFocus = (currentIndex > -1) ? 'list' : 'search';
             document.getElementById('extraction-modal').style.display = 'none';
             updateSelection();
-            updateSoftkeys();
         }
 
-        /**
-         * ES5 version to extract MIDlet class name from a JAR file.
-         * (This function remains unchanged as its logic is sound)
-         * @param {string} zipUrl The URL of the .jar file.
-         * @param {function(Error|null, string|null)} callback The callback function.
-         */
+        // Unchanged ES5 MIDlet extraction function
         function extractMidletClassName_ES5(zipUrl, callback) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
             xhr.responseType = 'arraybuffer';
-
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     JSZip.loadAsync(xhr.response).then(function(zip) {
                         const manifestFile = zip.file("META-INF/MANIFEST.MF");
-                        if (!manifestFile) {
-                            return callback(new Error("META-INF/MANIFEST.MF not found."), null);
-                        }
+                        if (!manifestFile) return callback(new Error("META-INF/MANIFEST.MF not found."), null);
                         manifestFile.async("string").then(function(content) {
                             const lines = content.split(/\r?\n/);
-                            let midletLine = null;
-                            for (let i = 0; i < lines.length; i++) {
-                                if (lines[i].match(/^MIDlet-\d+:/)) {
-                                    midletLine = lines[i];
-                                    break;
-                                }
-                            }
-                            if (!midletLine) {
-                                return callback(new Error("MIDlet-N attribute not found."), null);
-                            }
+                            let midletLine = lines.find(line => line.match(/^MIDlet-\d+:/));
+                            if (!midletLine) return callback(new Error("MIDlet-N attribute not found."), null);
                             const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
-                            if (parts.length < 3) {
-                                return callback(new Error("Malformed MIDlet attribute line."), null);
-                            }
+                            if (parts.length < 3) return callback(new Error("Malformed MIDlet attribute line."), null);
                             const className = parts[parts.length - 1].trim();
                             callback(null, className);
                         }).catch(err => callback(err, null));
