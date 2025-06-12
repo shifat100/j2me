@@ -27,11 +27,11 @@ function handleKeydown(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft":
+    case "SoftLeft": case "Escape":
       MIDP.sendKeyPress(-6);
       break;
     case "E":
-    case "SoftRight":
+    case "SoftRight": case "#":
       MIDP.sendKeyPress(-7);
       break;
     case "0":
@@ -105,11 +105,11 @@ function handleKeyup(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft":
+    case "SoftLeft": case "Escape":
       MIDP.sendKeyRelease(-6);
       break;
     case "E":
-    case "SoftRight":
+    case "SoftRight": case "#":
       MIDP.sendKeyRelease(-7);
       break;
     case "0":
