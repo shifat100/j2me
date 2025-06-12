@@ -243,7 +243,6 @@
 
 
         function fetchFileList() {
-            // ... (rest of the function is unchanged)
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'list.txt', true);
             xhr.onreadystatechange = function() {
@@ -259,7 +258,6 @@
         }
 
         function renderPage(keepFocusOnSearch = false) {
-             // ... (function is unchanged)
             const listElement = document.getElementById('file-list');
             listElement.innerHTML = '';
             if (filteredFiles.length === 0) {
@@ -290,14 +288,12 @@
         }
 
         function renderPagination() {
-             // ... (function is unchanged)
             const paginationElement = document.getElementById('pagination');
             const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
             paginationElement.innerHTML = (totalPages > 1) ? `Page ${currentPage} of ${totalPages}` : '';
         }
         
         function handleSearch() {
-             // ... (function is unchanged)
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.toLowerCase().includes(searchTerm));
             currentPage = 1;
@@ -305,7 +301,6 @@
         }
 
         function handleFileClick(filePath) {
-             // ... (function is unchanged)
             const fullUrl = `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/${filePath}`;
             showModal(`Extracting MIDlet from ${filePath}...`);
             extractMidletClassName_ES5(filePath, (error, midletName) => {
@@ -342,7 +337,6 @@
             }
 
             switch (event.key) {
-                // ... (rest of the switch statement is unchanged)
                 case 'ArrowDown':
                     if (currentFocus === 'search' && filteredFiles.length > 0) {
                         currentFocus = 'list';
@@ -387,7 +381,6 @@
         }
 
         function updateSelection() {
-            // ... (function is unchanged)
             const searchBox = document.getElementById('search-box');
             const listItems = document.getElementById('file-list').children;
             Array.from(listItems).forEach(item => item.classList.remove('selected'));
@@ -459,7 +452,6 @@
 
         // --- MODAL & EXTRACTION ---
         function showModal(message, isError = false) {
-            // ... (function is unchanged)
             currentFocus = 'modal';
             document.getElementById('modal-message').textContent = message;
             document.getElementById('extraction-modal').style.display = 'flex';
@@ -467,15 +459,12 @@
         }
 
         function closeModal() {
-             // ... (function is unchanged)
             currentFocus = (currentIndex > -1) ? 'list' : 'search';
             document.getElementById('extraction-modal').style.display = 'none';
             updateSelection();
         }
 
-        // Unchanged ES5 MIDlet extraction function
         function extractMidletClassName_ES5(zipUrl, callback) {
-             // ... (function is unchanged)
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
             xhr.responseType = 'arraybuffer';
