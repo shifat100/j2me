@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J2ME Game Launcher</title>
+    <!-- JSZip library is required for extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #0056b3; }
+        #search-box { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        #file-list { list-style-type: none; padding: 0; margin: 0; }
+        #file-list li { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s; }
+        #file-list li:hover { background-color: #e9f5ff; }
+        #file-list li:last-child { border-bottom: none; }
+        .pagination { text-align: center; margin-top: 20px; }
+        .pagination button { padding: 8px 16px; margin: 0 5px; border: 1px solid #007bff; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+        .pagination button:disabled { background-color: #ccc; border-color: #ccc; cursor: not-allowed; }
+        .pagination span { vertical-align: middle; font-weight: bold; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .modal-content p { margin: 15px 0; }
+        .modal-close-btn { background-color: #f44336; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>J2ME Game List</h1>
+        <input type="text" id="search-box" oninput="handleSearch()" placeholder="Search for a game...">
+        <ul id="file-list"></ul>
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <!-- The Modal Popup -->
+    <div id="extraction-modal" class="modal">
+        <div class="modal-content">
+            <p id="modal-message">Extracting MIDlet...</p>
+            <button id="modal-close-btn" class="modal-close-btn" style="display:none;" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        var allFiles = [];
+        var filteredFiles = [];
+        var currentPage = 1;
+        var itemsPerPage = 10;
+
+        // --- CORE LOGIC ---
+
+        // This function is called when the page loads
+        window.onload = function() {
+            fetchFileList();
+        };
+
+        // 1. Fetch the list.txt file
+        function fetchFileList() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'list.txt', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    allFiles = xhr.responseText.split(/\r?\n/).filter(function(line) {
+                        return line.trim() !== '';
+                    });
+                    filteredFiles = allFiles;
+                    renderPage();
+                } else if (xhr.readyState === 4) {
+                    document.getElementById('file-list').innerHTML = '<li>Error loading file list.</li>';
+                }
+            };
+            xhr.send();
+        }
+
+        // 2. Render the current page of files and the pagination controls
+        function renderPage() {
+            var listElement = document.getElementById('file-list');
+            listElement.innerHTML = '';
+
+            if (filteredFiles.length === 0) {
+                listElement.innerHTML = '<li>No files found.</li>';
+                renderPagination();
+                return;
+            }
+
+            var startIndex = (currentPage - 1) * itemsPerPage;
+            var endIndex = startIndex + itemsPerPage;
+            var pageItems = filteredFiles.slice(startIndex, endIndex);
+
+            for (var i = 0; i < pageItems.length; i++) {
+                var filePath = pageItems[i];
+                var fileName = filePath.substring(filePath.lastIndexOf('/') + 1).replace('.jar', '');
+                var listItem = document.createElement('li');
+                listItem.textContent = fileName;
+                listItem.setAttribute('data-path', filePath);
+                listItem.onclick = handleFileClick;
+                listElement.appendChild(listItem);
+            }
+            renderPagination();
+        }
+
+        // 3. Render pagination buttons and page info
+        function renderPagination() {
+            var paginationElement = document.getElementById('pagination');
+            var totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            paginationElement.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            var prevButton = document.createElement('button');
+            prevButton.textContent = 'Previous';
+            prevButton.onclick = function() { if (currentPage > 1) { currentPage--; renderPage(); } };
+            prevButton.disabled = currentPage === 1;
+
+            var nextButton = document.createElement('button');
+            nextButton.textContent = 'Next';
+            nextButton.onclick = function() { if (currentPage < totalPages) { currentPage++; renderPage(); } };
+            nextButton.disabled = currentPage === totalPages;
+
+            var pageInfo = document.createElement('span');
+            pageInfo.textContent = ' Page ' + currentPage + ' of ' + totalPages + ' ';
+
+            paginationElement.appendChild(prevButton);
+            paginationElement.appendChild(pageInfo);
+            paginationElement.appendChild(nextButton);
+        }
+
+        // 4. Handle search input
+        function handleSearch() {
+            var searchTerm = document.getElementById('search-box').value.toLowerCase();
+            filteredFiles = allFiles.filter(function(file) {
+                return file.toLowerCase().indexOf(searchTerm) > -1;
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        // 5. Handle clicking a file in the list
+        function handleFileClick(event) {
+            var filePath = event.target.getAttribute('data-path');
+            var fullUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/' + filePath;
+
+            showModal('Extracting MIDlet from ' + filePath + '...');
+
+            extractMidletClassName_ES5(filePath, function(error, midletName) {
+                if (error) {
+                    showModal('Error: ' + error.message, true); // Show error and close button
+                } else {
+                    // Success! Redirect to main.html with parameters
+                    var redirectUrl = 'main.html?jarlink=' + encodeURIComponent(fullUrl) + '&midlet=' + encodeURIComponent(midletName);
+                    window.location.href = redirectUrl;
+                }
+            });
+        }
+
+        // --- MODAL & EXTRACTION ---
+
+        function showModal(message, isError) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-close-btn').style.display = isError ? 'inline-block' : 'none';
+            document.getElementById('extraction-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('extraction-modal').style.display = 'none';
+        }
+
+        /**
+         * ES5 version to extract MIDlet class name from a JAR file.
+         * @param {string} zipUrl The URL of the .jar file.
+         * @param {function(Error|null, string|null)} callback The callback function.
+         */
+        function extractMidletClassName_ES5(zipUrl, callback) {
+            var proxyUrl = 'https://corsproxy.io/?'; // CORS proxy to fetch from the same origin if needed, but often not necessary for relative paths.
+            var fullUrl = zipUrl; // We are using relative paths, so proxy might not be needed.
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', fullUrl, true);
+            xhr.responseType = 'arraybuffer';
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    JSZip.loadAsync(xhr.response).then(function(zip) {
+                        var manifestFile = zip.file("META-INF/MANIFEST.MF");
+                        if (!manifestFile) {
+                            return callback(new Error("META-INF/MANIFEST.MF not found."), null);
+                        }
+                        manifestFile.async("string").then(function(content) {
+                            var lines = content.split(/\r?\n/);
+                            var midletLine = null;
+                            for (var i = 0; i < lines.length; i++) {
+                                if (lines[i].match(/^MIDlet-\d+:/)) {
+                                    midletLine = lines[i];
+                                    break;
+                                }
+                            }
+                            if (!midletLine) {
+                                return callback(new Error("MIDlet-N attribute not found."), null);
+                            }
+                            var parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
+                            if (parts.length < 3) {
+                                return callback(new Error("Malformed MIDlet attribute line."), null);
+                            }
+                            var className = parts[parts.length - 1].trim();
+                            callback(null, className);
+                        }).catch(function(err){ callback(err, null); });
+                    }).catch(function(err){ callback(err, null); });
+                } else {
+                    callback(new Error("Failed to fetch JAR file (Status: " + xhr.status + ")"), null);
+                }
+            };
+            xhr.onerror = function() {
+                callback(new Error("Network error during JAR file fetch."), null);
+            };
+            xhr.send();
+        }
+    </script>
+
+</body>
+</html>
