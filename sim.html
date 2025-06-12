@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<title>Simulator</title>
+</head>
+
+<body>
+	<div class="container">
+		<div class="panel help">
+
+			<h2>How to use the phone</h2>
+			<ul>
+				<li>This is a non-touch phone. Use the keypad to navigate the app</li>
+				<li>Use the Enter button to go forward (twice to start).</li>
+				<li>Use the up/down keys to page through an article</li>
+				<li>Use the left/right keys to cycle through the article links</li>
+				<li>Use the red key to go back</li>
+			</ul>
+		</div>
+		<div class="panel device">
+			<div class="header">
+				<div class="headersection left">
+					<div class="headeritem mode">♻</div>
+				</div>
+				<div class="headersection right">
+					<div class="headeritem">📶</div>
+					<div class="headeritem clock"></div>
+				</div>
+			</div>
+			<div class="glass">
+				<div class="keyselector">
+					<div>2</div>
+					<div class="selected">a</div>
+					<div>b</div>
+					<div>c</div>
+				</div>
+			</div>
+			<iframe id="appFrame" src="./" scrolling="no"></iframe>
+			<div class="brand"></div>
+			<table class="keypad">
+				<tr>
+					<td>
+						<div class="button sk largeicon" data-key="SoftLeft">—</div>
+					</td>
+					<td>
+						<div class="button sk" data-key="ArrowUp">↑</div>
+					</td>
+					<td>
+						<div class="button sk largeicon" data-key="SoftRight">—</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button lr" data-key="ArrowLeft">←</div>
+					</td>
+					<td>
+						<div class="button sk" data-key="Enter">Enter</div>
+					</td>
+					<td>
+						<div class="button lr" data-key="ArrowRight">→</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button largeicon call" data-key="Call">—</div> <!-- Assuming Call key might be useful -->
+					</td>
+					<td>
+						<div class="button sk" data-key="ArrowDown">↓</div>
+					</td>
+					<td>
+						<div class="button largeicon backspace" data-key="Backspace">—</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button char" data-key="1">1 <span>.,?</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="2">2 <span>ABC</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="3">3 <span>DEF</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button char" data-key="4">4 <span>GHI</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="5">5 <span>JKL</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="6">6 <span>MNO</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button char" data-key="7">7 <span>PQRS</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="8">8 <span>TUV</span></div>
+					</td>
+					<td>
+						<div class="button char" data-key="9">9 <span>WXYZ</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div class="button char specialchars largeicon" data-key="*">∗</div> <!-- Added char class -->
+					</td>
+					<td>
+						<div class="button char" data-key="0">0 _</div>
+					</td>
+					<td>
+						<div class="button mode" data-key="#"># <span>⇪</span></div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div class="panel controlpanel">
+			<h3>Configuration</h3>
+			<div id="online-toggle-container"> <!-- Renamed div ID for clarity -->
+				<input type="checkbox" id="online-checkbox" name="online" checked autocomplete="off" />
+				<label for="online-checkbox">Online/offline</label>
+			</div>
+			<div id="experiment-trending-container"> <!-- Renamed div ID for clarity -->
+				<input type="checkbox" id="experiment-trending-checkbox" name="experiment-trending" autocomplete="off" />
+				<label for="experiment-trending-checkbox">Experiment Group (Trending articles)</label>
+			</div>
+		</div>
+		<style type="text/css">
+			.container {
+				display: flex;
+				flex-wrap: wrap;
+			}
+
+			.panel {
+				margin: 20px;
+				width: 260px;
+				box-sizing: border-box;
+			}
+
+			.device {
+				width: 260px;
+				padding: 20px 10px;
+				border-radius: 20px;
+				background-color: grey;
+				position: relative;
+				box-sizing: border-box;
+			}
+
+			.header {
+				display: flex;
+				justify-content: space-between;
+				height: 20px;
+				background-color: #ccc;
+			}
+
+			.headersection.left {
+				display: flex;
+				justify-content: flex-start;
+			}
+
+			.headersection.right {
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.headeritem {
+				font-size: 14px;
+				font-family: sans-serif;
+				align-self: center;
+				margin: 0;
+				padding: 4px;
+			}
+
+			.glass {
+				position: absolute;
+				top: 40px;
+				left: 10px;
+				width: 240px;
+				height: 290px;
+				cursor: not-allowed;
+			}
+
+			.keyselector {
+				display: flex;
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				height: 30px;
+				width: 100%;
+				background-color: #ccc;
+			}
+
+			.keyselector div {
+				width: 30px;
+				height: 30px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.keyselector div.selected {
+				background-color: blue;
+				color: white;
+			}
+
+			#appFrame {
+				width: 240px;
+				height: 290px;
+				border: 0;
+			}
+
+			.brand {
+				padding: 10px 10px 6px 38px;
+				letter-spacing: 20px;
+				text-align: center;
+				color: white;
+				font-weight: bold;
+				font-family: sans-serif;
+			}
+
+			.keypad {
+				width: 100%;
+			}
+
+			.button {
+				color: white;
+				background-color: black;
+				font-weight: bold;
+				text-align: center;
+				padding: 5px;
+				border-radius: 20px;
+				font-size: 12px;
+				line-height: 12.5px;
+				font-family: sans-serif;
+				cursor: pointer;
+			}
+
+			.button.largeicon {
+				font-size: 26px;
+			}
+
+			.button.call {
+				color: green;
+			}
+
+			.button.backspace {
+				color: red;
+			}
+
+			.button span {
+				font-size: 8px;
+			}
+
+			/* Removed: .controlpanel #online { display: none; } */
+			/* This rule was hiding the online/offline toggle */
+		</style>
+		<script type="text/javascript">
+			const keysMap = {
+				'1': ['.', ',', '?', '!', '1', ';', ':', '/', '@'],
+				'2': ['a', 'b', 'c', '2'],
+				'3': ['d', 'e', 'f', '3'],
+				'4': ['g', 'h', 'i', '4'],
+				'5': ['j', 'k', 'l', '5'],
+				'6': ['m', 'n', 'o', '6'],
+				'7': ['p', 'q', 'r', 's', '7'],
+				'8': ['t', 'u', 'v', '8'],
+				'9': ['w', 'x', 'y', 'z', '9'],
+				'0': [' ', '0'],
+				'*': ['*'] // Added for the '*' key
+			};
+			const inputModes = [
+				{ name: 'lowercase', text: '', fn: function (key, keys) { return keys ? keys.map(k => k.toLowerCase()) : [key.toLowerCase()]; } },
+				{ name: 'uppercase', text: '', fn: function (key, keys) { return keys ? keys.map(k => k.toUpperCase()) : [key.toUpperCase()]; } },
+				{ name: 'number', text: '', fn: function (key) { return [key]; } } // Ensure it always returns an array
+			];
+			var currentInputMode = 0;
+			const inputModeIndicator = document.querySelector('.headeritem.mode');
+			const nextInputMode = function () {
+				currentInputMode = (currentInputMode === inputModes.length - 1 ? 0 : currentInputMode + 1);
+				inputModeIndicator.innerHTML = inputModes[currentInputMode].text;
+			}
+			const keysInCurrentMode = function (key) {
+				// Ensure keysMap[key] is an array, or use [key] itself if not in keysMap (e.g. for '*')
+                const baseKeys = keysMap[key] || [key];
+				return inputModes[currentInputMode].fn(key, baseKeys);
+			}
+
+			const appFrame = document.querySelector('#appFrame');
+
+			const keySelector = (function ($element) {
+				$element.style.visibility = 'hidden';
+				var keys = [];
+				var currentKey = null;
+				var timeout = null;
+				var lastInputElement;
+
+				const close = function () {
+					if (lastInputElement) {
+						lastInputElement.dispatchEvent(new InputEvent('input'))
+					}
+					$element.style.visibility = 'hidden';
+				}
+
+				const isClosed = function () {
+					return $element.style.visibility === 'hidden';
+				};
+
+				const open = function () {
+					$element.style.visibility = 'visible';
+					clearTimeout(timeout);
+					timeout = setTimeout(close, 1000);
+				};
+
+				const render = function () {
+					$element.innerHTML = '';
+					keys.forEach(function (k) {
+						const div = document.createElement('div');
+						if (k === currentKey) {
+							div.classList.add('selected')
+						}
+						div.appendChild(document.createTextNode(k));
+						$element.appendChild(div);
+					})
+				};
+
+				const arraysEqual = function (a, b) {
+					if (!a || !b || a.length !== b.length) { // Added null checks for a and b
+						return false;
+					}
+					for (var i = 0; i < a.length; i++) {
+						if (a[i] != b[i]) {
+							return false;
+						}
+					}
+					return true;
+				}
+
+				return function (newKeys, inputElement) {
+					var replace;
+					lastInputElement = inputElement
+
+					if (isClosed()) {
+						keys = newKeys;
+						currentKey = newKeys[0];
+						replace = false;
+					} else if (!arraysEqual(keys, newKeys)) {
+						// it's open but this is a new button
+						// confirm previous selection
+						// lastInputElement.dispatchEvent(new InputEvent('input')); // Already handled by close() if timeout happens
+						keys = newKeys;
+						currentKey = newKeys[0];
+						replace = false;
+					} else {
+						// it's open and this is another press on the same button
+						var index = keys.indexOf(currentKey) + 1;
+						if (index >= keys.length) {
+							index = 0;
+						}
+						currentKey = keys[index];
+						replace = true;
+					}
+					render();
+					open();
+					return [currentKey, replace];
+				};
+			})(document.querySelector('.keyselector'));
+
+			const dispatchKeyToDoc = function (key) {
+				const newEvent = new KeyboardEvent('keydown', {
+					key: key,
+					composed: true,
+					bubbles: true,
+					cancelable: false // Typically false for synthetic, but can be true if app needs to cancel
+				});
+				appFrame.contentDocument.dispatchEvent(newEvent);
+			}
+
+			const isInput = function ($element) {
+				return $element && ($element.tagName === 'INPUT' || $element.tagName === 'TEXTAREA');
+			}
+
+			const keyHandlers = {
+				'.button.sk': function (e) {
+					dispatchKeyToDoc(e.currentTarget.getAttribute('data-key'));
+				},
+				'.button.call': function(e) { // Added handler for call button if needed
+					dispatchKeyToDoc(e.currentTarget.getAttribute('data-key'));
+				},
+				'.button.backspace': function (e) {
+					const element = appFrame.contentDocument.activeElement;
+					if (isInput(element)) {
+						if (element.value !== '' && element.selectionStart > 0) {
+							const v = element.value;
+							const caretStart = element.selectionStart;
+                            const caretEnd = element.selectionEnd;
+                            let newCaretPos;
+                            if (caretStart === caretEnd) { // No selection, just backspace one char
+							    element.value = v.substring(0, caretStart - 1) + v.substring(caretStart);
+                                newCaretPos = caretStart - 1;
+                            } else { // Selection exists, delete selection
+                                element.value = v.substring(0, caretStart) + v.substring(caretEnd);
+                                newCaretPos = caretStart;
+                            }
+							element.setSelectionRange(newCaretPos, newCaretPos);
+							element.dispatchEvent(new InputEvent('input'));
+						}
+					} else {
+						dispatchKeyToDoc('Backspace');
+					}
+				},
+				'.button.lr': function (e) {
+					const element = appFrame.contentDocument.activeElement;
+					const key = e.currentTarget.getAttribute('data-key');
+					if (isInput(element)) {
+						if (key === 'ArrowRight') {
+							if (element.selectionEnd < element.value.length) { // Use selectionEnd for moving right
+								const caret = element.selectionStart + 1; // Move cursor, not selection
+								element.setSelectionRange(caret, caret);
+							}
+						} else if (key === 'ArrowLeft') {
+							if (element.selectionStart > 0) {
+								const caret = element.selectionStart - 1;
+								element.setSelectionRange(caret, caret);
+							}
+						}
+					} else {
+						dispatchKeyToDoc(key);
+					}
+				},
+				'.button.char': function (e) {
+					const dataKey = e.currentTarget.getAttribute('data-key');
+					const keys = keysInCurrentMode(dataKey); // keys is now always an array e.g. ['a','b','c'] or ['*']
+					
+					const element = appFrame.contentDocument.activeElement;
+					if (isInput(element)) {
+						const useKeySelector = keys.length > 1 || (keys.length === 1 && keys[0] !== dataKey && !keysMap[dataKey]);
+                                                const isNumMode = inputModes[currentInputMode].name === 'number';
+                                                const hasMultipleCharsForKey = keysMap[dataKey] && keysMap[dataKey].length > 1;
+                                                const effectiveUseKeySelector = !isNumMode && hasMultipleCharsForKey;
+
+
+						const [charToInsert, replace] = effectiveUseKeySelector ? keySelector(keys, element) : [keys[0], false];
+						
+						var val = element.value;
+						const currentSelectionStart = element.selectionStart;
+						const currentSelectionEnd = element.selectionEnd;
+						var newCaretPos;
+
+						if (replace) { // Replace the character before the cursor (multi-tap)
+							val = val.substring(0, currentSelectionStart - 1) + charToInsert + val.substring(currentSelectionStart);
+							newCaretPos = currentSelectionStart; 
+						} else { // Insert new char (or replace selection)
+							val = val.substring(0, currentSelectionStart) + charToInsert + val.substring(currentSelectionEnd);
+							newCaretPos = currentSelectionStart + charToInsert.length;
+						}
+						element.value = val;
+						element.setSelectionRange(newCaretPos, newCaretPos);
+						element.dispatchEvent(new InputEvent('input', { data: charToInsert, isComposing: effectiveUseKeySelector }));
+					} else {
+						dispatchKeyToDoc(keys[0]); // Send the first character of the mode-adjusted list
+					}
+				},
+				'.button.mode': nextInputMode
+			};
+			Object.keys(keyHandlers).forEach(function (selector) {
+				Array.from(document.querySelectorAll(selector)).forEach(function (b) {
+					b.addEventListener('click', keyHandlers[selector]);
+				});
+			});
+
+			// Prevent key and mouse events from stealing focus from the iframe
+			['keypress', 'keydown', 'keyup', 'mousedown', 'mouseup', 'click'].forEach(function (k) {
+				window.addEventListener(k, function (e) {
+					// Allow events on elements with data-allowlist (like links in help)
+                    // and on form elements in the control panel
+					if (!e.target.getAttribute('data-allowlist') && !e.target.closest('.controlpanel')) {
+						e.preventDefault();
+					}
+				}, true);
+			});
+
+			// REMOVED: Aggressive event cancellation in appFrame.contentWindow
+			// ['keypress', 'keydown', 'keyup', 'mousedown', 'mouseup', 'click'].forEach(function (k) {
+			// 	appFrame.contentWindow.addEventListener(k, function (e) {
+			// 		if (e.cancelable) {
+			// 			e.preventDefault();
+			// 			e.stopPropagation();
+			// 		}
+			// 	}, true);
+			// });
+
+			// Clock
+			const pad = function (number) {
+				return (number < 10 ? '0' : '') + number;
+			}
+			const clock = document.querySelector('.headeritem.clock');
+			const updateClock = function () {
+				const d = new Date();
+				clock.innerText = d.getHours() + ':' + pad(d.getMinutes());
+			}
+			updateClock()
+			setInterval(updateClock, 60 * 1000);
+
+			// Online/offline toggle
+			const onlineCheckbox = document.querySelector('#online-checkbox');
+			onlineCheckbox.addEventListener('change', function (e) {
+				const isOnline = e.target.checked;
+				Object.defineProperty(appFrame.contentWindow.navigator, "onLine", { // Define on navigator directly
+					enumerable: true,
+					configurable: true,
+					get: function () {
+						return isOnline;
+					}
+				});
+				appFrame.contentWindow.dispatchEvent(new Event(isOnline ? 'online' : 'offline'));
+			});
+            // Trigger initial state for onLine
+            onlineCheckbox.dispatchEvent(new Event('change'));
+
+
+			// Experiment Group for Trending Articles toggle
+			const experimentCheckbox = document.querySelector('#experiment-trending-checkbox');
+			experimentCheckbox.addEventListener('change', function (e) {
+				const isExperimentEnabled = e.target.checked;
+				if (isExperimentEnabled) {
+					localStorage.setItem('2021-KaiOS-app-engagement-config', `{"timestamp":${Date.now()},"startDate":"20210101","endDate":"20211231","countries":["NG"],"languages":["en"]}`);
+					localStorage.setItem('2021-KaiOS-app-homepage-content-suggestions', 'trending-articles');
+					localStorage.setItem('user-country', 'NG');
+				} else {
+					localStorage.setItem('2021-KaiOS-app-homepage-content-suggestions', 'control');
+                    // Consider removing other experiment-specific keys or setting them to default
+                    // localStorage.removeItem('2021-KaiOS-app-engagement-config');
+                    // localStorage.removeItem('user-country');
+				}
+				// appFrame.contentWindow.location.href = './'; // This causes issues if src is relative
+                appFrame.src = './'; // Re-setting src reloads the iframe
+			});
+
+			// navigator.sendBeacon may be undefined in some browser configuration
+            // Ensure appFrame and its contentWindow are loaded before accessing them
+            appFrame.addEventListener('load', function() {
+                if (appFrame.contentWindow && appFrame.contentWindow.navigator && !appFrame.contentWindow.navigator.sendBeacon) {
+                    appFrame.contentWindow.navigator.sendBeacon = function () { /* no-op */ };
+                }
+                // Set initial online state after iframe loads
+                onlineCheckbox.dispatchEvent(new Event('change'));
+            });
+
+
+			// REMOVED: handleDown, handleUp functions and their listeners, and currentKey global.
+			// These were conflicting with the click handlers in keyHandlers and had issues.
+			// The current system relies on click handlers and dispatching keydown events.
+			// If keyup events are needed, keyHandlers and dispatchKeyToDoc would need further modifications.
+			// -------------------- DUMMY IMPLEMENTATION START --------------------
+/**
+ * KaiOS DeviceStorage API Simulator using IndexedDB
+ */
+// --- Helper: SimulatedDOMRequest ---
+class SimulatedDOMRequest {
+  constructor() {
+    this.result = null;
+    this.error = null; // Should be an object like { name: '', message: '' }
+    this.readyState = 'pending'; // 'pending', 'done'
+    this.onsuccess = null;
+    this.onerror = null;
+  }
+
+  _resolve(result) {
+    if (this.readyState === 'done') return;
+    this.result = result;
+    this.readyState = 'done';
+    if (this.onsuccess) {
+      try {
+        // The event object passed to onsuccess should have a target property
+        // 'this' inside the handler will be the request object itself
+        this.onsuccess.call(this, { target: this });
+      } catch (e) {
+        console.error("Error in onsuccess handler:", e);
+      }
+    }
+  }
+
+  _reject(error) {
+    if (this.readyState === 'done') return;
+    this.error = error;
+    this.readyState = 'done';
+    if (this.onerror) {
+      try {
+        // 'this' inside the handler will be the request object itself
+        this.onerror.call(this, { target: this });
+      } catch (e) {
+        console.error("Error in onerror handler:", e);
+      }
+    }
+  }
+}
+
+// --- Helper: Create File-like objects ---
+// For enumerate(), the result.name is the full path
+function createKaiOSFileObjectForEnumeration(storedEntry) {
+  return {
+    name: storedEntry.fullPath, // Full path as name
+    size: storedEntry.blob.size,
+    type: storedEntry.blob.type,
+    lastModified: storedEntry.lastModified,
+    // This is not a true File instance, but matches KaiOS enumeration result structure.
+  };
+}
+
+// For get(), the result is a standard File object, where file.name is the filename.
+function createStandardFileObject(storedEntry) {
+  const filename = storedEntry.fullPath.substring(storedEntry.fullPath.lastIndexOf('/') + 1);
+  return new File([storedEntry.blob], filename, {
+    type: storedEntry.blob.type,
+    lastModified: storedEntry.lastModified,
+  });
+}
+
+
+// --- SimulatedDeviceStorage Class ---
+class SimulatedDeviceStorage {
+  constructor(db, storageName) {
+    this._db = db;
+    this._storageName = storageName; // e.g., "pictures"
+    this._objectStoreName = `${storageName}_store`;
+    this.onchange = null; // Placeholder for the onchange event handler
+  }
+
+  _getTransaction(mode = 'readonly') {
+    if (!this._db || typeof this._db.transaction !== 'function') { // More robust check
+        throw new Error("IndexedDB connection is not valid or has been closed.");
+    }
+    try {
+        const transaction = this._db.transaction(this._objectStoreName, mode);
+        return transaction.objectStore(this._objectStoreName);
+    } catch (e) {
+        console.error(`Error getting transaction for ${this._objectStoreName} with mode ${mode}:`, e);
+        throw e;
+    }
+  }
+
+  _notifyChange(changeData) {
+    if (typeof this.onchange === 'function') {
+        // changeData could be { reason: 'created'/'modified'/'deleted', path: '...' }
+        // This is a simplified event object. Real KaiOS event is more complex.
+        try {
+            this.onchange({
+                reason: changeData.reason,
+                path: changeData.path
+            });
+        } catch (e) {
+            console.error("Error in onchange handler:", e);
+        }
+    }
+  }
+
+  addNamed(blob, filename) {
+    const request = new SimulatedDOMRequest();
+
+    if (this._storageName === 'apps') {
+      setTimeout(() => request._reject({ name: 'NoModificationAllowedError', message: 'Cannot add to read-only "apps" storage.' }), 0);
+      return request;
+    }
+
+    const storeItem = {
+      fullPath: filename,
+      blob: blob,
+      size: blob.size,
+      type: blob.type,
+      lastModified: Date.now(),
+    };
+
+    try {
+      const idbStore = this._getTransaction('readwrite');
+      const idbRequest = idbStore.put(storeItem);
+
+      idbRequest.onsuccess = () => {
+        request._resolve(filename); // KaiOS addNamed result is the path
+        this._notifyChange({ reason: 'created', path: filename });
+      };
+      idbRequest.onerror = (event) => {
+        request._reject({ name: event.target.error.name, message: event.target.error.message });
+      };
+    } catch (e) {
+        setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for addNamed." }),0);
+    }
+    return request;
+  }
+
+  get(filename) {
+    const request = new SimulatedDOMRequest();
+    try {
+      const idbStore = this._getTransaction('readonly');
+      const idbRequest = idbStore.get(filename);
+
+      idbRequest.onsuccess = (event) => {
+        if (event.target.result) {
+          request._resolve(createStandardFileObject(event.target.result));
+        } else {
+          request._resolve(null); // File not found
+        }
+      };
+      idbRequest.onerror = (event) => {
+        request._reject({ name: event.target.error.name, message: event.target.error.message });
+      };
+    } catch (e) {
+      setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for get." }),0);
+    }
+    return request;
+  }
+
+  getEditable(filename) {
+    // For this simulation, getEditable is the same as get.
+    // A more complete simulation might return a different type of object or handle locking.
+    return this.get(filename);
+  }
+
+  delete(filename) {
+    const request = new SimulatedDOMRequest();
+
+    if (this._storageName === 'apps') {
+      setTimeout(() => request._reject({ name: 'NoModificationAllowedError', message: 'Cannot delete from read-only "apps" storage.' }), 0);
+      return request;
+    }
+
+    try {
+      const idbStore = this._getTransaction('readwrite');
+      const getRequest = idbStore.getKey(filename);
+
+      getRequest.onsuccess = () => {
+        if (getRequest.result === undefined) {
+          request._resolve(false); // File not found, deletion "succeeds" with false
+        } else {
+          const deleteRequest = idbStore.delete(filename);
+          deleteRequest.onsuccess = () => {
+            request._resolve(true); // Deletion successful
+            this._notifyChange({ reason: 'deleted', path: filename });
+          };
+          deleteRequest.onerror = (event) => {
+            request._reject({ name: event.target.error.name, message: event.target.error.message });
+          };
+        }
+      };
+      getRequest.onerror = (event) => {
+        request._reject({ name: event.target.error.name, message: event.target.error.message });
+      };
+    } catch (e) {
+      setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for delete." }),0);
+    }
+    return request;
+  }
+
+  enumerate(basePath = "") {
+    const cursorRequest = new SimulatedDOMRequest();
+    let idbCursorInstance = null;
+
+    cursorRequest.continue = function() {
+      if (this.readyState !== 'pending') {
+          if (this.result === null && this.error === null && this.onsuccess) {
+              try { this.onsuccess.call(this, {target: this}); } catch(e) { console.error("Error in cursor.onsuccess after continue (exhausted):", e); }
+          }
+          return;
+      }
+      if (idbCursorInstance) {
+        idbCursorInstance.continue();
+      } else {
+        this.result = null;
+        if (this.onsuccess && !this.error) {
+             try { this.onsuccess.call(this, { target: this }); } catch (e) { console.error("Error in cursor.onsuccess after continue (no active IDBCursor):", e); }
+        }
+      }
+    }.bind(cursorRequest);
+
+    try {
+      const idbStore = this._getTransaction('readonly');
+      // Normalize basePath: ensure it ends with / if it's meant as a directory prefix
+      // and is not empty. For simplicity, we assume basePath is used as a prefix.
+      // A more accurate simulation would handle specific KaiOS path logic
+      // (file vs. directory based on trailing '/').
+      const range = basePath ? IDBKeyRange.lowerBound(basePath) : null;
+      const idbOpenCursorRequest = idbStore.openCursor(range);
+
+      idbOpenCursorRequest.onsuccess = (event) => {
+        idbCursorInstance = event.target.result;
+        if (idbCursorInstance) {
+          const storedFile = idbCursorInstance.value;
+          // Filter items that are truly within or at the basePath
+          if (storedFile.fullPath.startsWith(basePath)) {
+            // TODO: For stricter directory listing (non-recursive), add depth check:
+            // e.g. if (basePath.endsWith('/') && storedFile.fullPath.substring(basePath.length).includes('/')) {
+            //   idbCursorInstance.continue(); return; /* It's in a sub-directory */
+            // }
+            cursorRequest.result = createKaiOSFileObjectForEnumeration(storedFile);
+          } else {
+            // No longer matches prefix, effectively end of relevant items for this basePath
+            idbCursorInstance = null; // Stop trying to continue this IDB cursor
+            cursorRequest.result = null;
+            cursorRequest.readyState = 'done';
+          }
+        } else {
+          cursorRequest.result = null;
+          cursorRequest.readyState = 'done';
+        }
+
+        if (cursorRequest.onsuccess) {
+          try {
+            cursorRequest.onsuccess.call(cursorRequest, { target: cursorRequest });
+          } catch (e) {
+            console.error("Error in cursor.onsuccess (item found or exhausted):", e);
+          }
+        }
+        // If cursorRequest.result was set to a file, and user doesn't call .continue(),
+        // readyState remains 'pending'. This is by design of cursors.
+        // It becomes 'done' only when exhausted or errored.
+      };
+
+      idbOpenCursorRequest.onerror = (event) => {
+        idbCursorInstance = null;
+        cursorRequest._reject({ name: event.target.error.name, message: event.target.error.message });
+      };
+
+    } catch (e) {
+      idbCursorInstance = null;
+      setTimeout(() => {
+          cursorRequest._reject({ name: e.name || "EnumerateSetupError", message: e.message || "Failed to start enumeration." });
+      }, 0);
+    }
+    return cursorRequest;
+  }
+
+
+  enumerateEditable(path = "") {
+    // In this simulation, enumerateEditable is the same as enumerate.
+    // A more complex simulation might return EditableDOMFile-like objects.
+    return this.enumerate(path);
+  }
+
+  async _getSpaceEstimate() {
+    if (navigator.storage && navigator.storage.estimate) {
+      try {
+        return await navigator.storage.estimate();
+      } catch (err) {
+        console.warn("navigator.storage.estimate() failed:", err);
+      }
+    }
+    // Fallback mock values if estimate API is unavailable or fails
+    const fiveHundredMB = 500 * 1024 * 1024;
+    // Try to calculate usage from IndexedDB for this specific store
+    let currentUsage = 0;
+    try {
+        const store = this._getTransaction('readonly');
+        const req = store.getAll();
+        return new Promise((resolve) => {
+            req.onsuccess = () => {
+                currentUsage = req.result.reduce((sum, file) => sum + (file.blob.size || 0), 0);
+                resolve({ quota: fiveHundredMB, usage: currentUsage });
+            };
+            req.onerror = () => {
+                resolve({ quota: fiveHundredMB, usage: 0 }); // Fallback on error
+            };
+        });
+
+    } catch(e) {
+         // Fallback if transaction fails
+        return { quota: fiveHundredMB, usage: 0 };
+    }
+  }
+
+  freeSpace() {
+    const request = new SimulatedDOMRequest();
+    this._getSpaceEstimate().then(estimate => {
+      request._resolve(Math.max(0, estimate.quota - estimate.usage));
+    }).catch(err => {
+      // Fallback if promise rejected unexpectedly (should be handled by _getSpaceEstimate)
+      request._resolve(500 * 1024 * 1024); // Mock
+    });
+    return request;
+  }
+
+  // totalSpace() is part of general DeviceStorage API (e.g. Firefox OS)
+  totalSpace() {
+    const request = new SimulatedDOMRequest();
+    this._getSpaceEstimate().then(estimate => {
+      request._resolve(estimate.quota);
+    }).catch(err => {
+      request._resolve(500 * 1024 * 1024); // Mock
+    });
+    return request;
+  }
+
+  // usedSpace() is listed in the specific KaiOS doc page
+  usedSpace() {
+    const request = new SimulatedDOMRequest();
+    this._getSpaceEstimate().then(estimate => {
+      request._resolve(estimate.usage);
+    }).catch(err => {
+      request._resolve(0); // Mock, or could attempt to sum sizes in IDB
+    });
+    return request;
+  }
+
+  // available() method from DeviceStorage API
+  available() {
+      const request = new SimulatedDOMRequest();
+      // For simulation, we'll assume it's always available if DB is up.
+      // Real KaiOS would check mount state, etc.
+      if (this._db && typeof this._db.transaction === 'function') {
+          setTimeout(() => request._resolve("available"), 0);
+      } else {
+          setTimeout(() => request._resolve("unavailable"), 0);
+      }
+      return request;
+  }
+}
+
+// --- IndexedDB Setup and navigator.getDeviceStorage global simulator ---
+const KAIOS_SIM_DB_NAME = 'KaiOSDeviceStorageSimulatorDB';
+const KAIOS_SIM_DB_VERSION = 2; // Increment if object store structure changes (e.g. new index)
+const KAIOS_SIM_STORAGE_NAMES = ['pictures', 'videos', 'music', 'sdcard', 'apps'];
+
+let simDbInstance = null;
+let dbInitializationPromise = null;
+
+function initSimulatedDeviceStorageDB() {
+  if (!dbInitializationPromise) {
+    dbInitializationPromise = new Promise((resolve, reject) => {
+      if (simDbInstance) {
+        resolve(simDbInstance);
+        return;
+      }
+      if (!window.indexedDB) {
+          const errMsg = "IndexedDB is not supported in this browser. KaiOS Storage Simulator cannot run.";
+          console.error(errMsg);
+          reject(new Error(errMsg));
+          return;
+      }
+
+      const openRequest = indexedDB.open(KAIOS_SIM_DB_NAME, KAIOS_SIM_DB_VERSION);
+
+      openRequest.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        KAIOS_SIM_STORAGE_NAMES.forEach(name => {
+          const storeName = `${name}_store`;
+          if (!db.objectStoreNames.contains(storeName)) {
+            db.createObjectStore(storeName, { keyPath: 'fullPath' });
+          }
+          // Example: If you needed an index later for faster prefix searching for enumerate
+          // const store = event.target.transaction.objectStore(storeName);
+          // if (!store.indexNames.contains('fullPath')) {
+          //   store.createIndex('fullPath', 'fullPath', { unique: true });
+          // }
+        });
+      };
+
+      openRequest.onsuccess = (event) => {
+        simDbInstance = event.target.result;
+        simDbInstance.onclose = () => {
+            console.warn("Simulated DeviceStorage DB connection closed unexpectedly.");
+            simDbInstance = null;
+            dbInitializationPromise = null;
+        };
+        simDbInstance.onversionchange = () => {
+            console.warn("Simulated DeviceStorage DB version change detected. Closing old connection.");
+            if (simDbInstance) simDbInstance.close(); // Important to close old connection
+            simDbInstance = null;
+            dbInitializationPromise = null;
+        };
+        resolve(simDbInstance);
+      };
+
+      openRequest.onerror = (event) => {
+        console.error('Error opening simulated DB:', event.target.error);
+        dbInitializationPromise = null;
+        reject(event.target.error);
+      };
+
+      openRequest.onblocked = (event) => {
+        console.warn("Simulated DeviceStorage DB open request is blocked. Close other connections/tabs using this DB.", event);
+        reject(new Error("IndexedDB open request blocked."));
+      };
+    });
+  }
+  return dbInitializationPromise;
+}
+
+// Simulate navigator.getDeviceStorage and navigator.getDeviceStorages
+function setupKaiOSNavigatorSimulation() {
+  if (typeof navigator !== 'undefined') {
+    // navigator.getDeviceStorage (singular) - returns the first storage object or null
+    if (!navigator.getDeviceStorage) {
+      navigator.getDeviceStorage = function(storageName) {
+        if (!simDbInstance) {
+          console.error("Simulated DeviceStorage DB not initialized. Call and await initSimulatedDeviceStorageDB() first.");
+          return null; // KaiOS would likely return null if service unavailable
+        }
+        if (KAIOS_SIM_STORAGE_NAMES.includes(storageName)) {
+          return new SimulatedDeviceStorage(simDbInstance, storageName);
+        } else {
+          console.warn(`Simulated DeviceStorage: Unknown storage name '${storageName}' for getDeviceStorage.`);
+          return null;
+        }
+      };
+      console.log("Simulated navigator.getDeviceStorage (singular) is now available.");
+    } else {
+      console.warn("navigator.getDeviceStorage (singular) already exists. Simulator will not overwrite.");
+    }
+
+    // navigator.getDeviceStorages (plural) - returns an array of storage objects
+    if (!navigator.getDeviceStorages) {
+      navigator.getDeviceStorages = function(storageName) {
+        if (!simDbInstance) {
+          console.error("Simulated DeviceStorage DB not initialized. Call and await initSimulatedDeviceStorageDB() first.");
+          return [];
+        }
+        if (KAIOS_SIM_STORAGE_NAMES.includes(storageName)) {
+          return [new SimulatedDeviceStorage(simDbInstance, storageName)]; // Array with one item
+        } else {
+          console.warn(`Simulated DeviceStorage: Unknown storage name '${storageName}' for getDeviceStorages.`);
+          return [];
+        }
+      };
+      console.log("Simulated navigator.getDeviceStorages (plural) is now available.");
+    } else {
+      console.warn("navigator.getDeviceStorages (plural) already exists. Simulator will not overwrite.");
+    }
+  } else {
+    console.error("`navigator` object not found. Cannot simulate KaiOS storage methods.");
+  }
+}
+
+// --- Example Usage: KaiOS API Style ---
+// This function demonstrates how you'd use the DeviceStorage API on KaiOS
+// (or with this simulator once initialized).
+async function runKaiOSDeviceStorageDemo() {
+  console.log("Starting KaiOS DeviceStorage API Demo...");
+
+  // 0. Check storage availability (optional, but good practice)
+  const sdcardStorage = navigator.getDeviceStorage('sdcard'); // Using singular form
+
+  if (!sdcardStorage) {
+    console.error("Could not get 'sdcard' storage. Demo cannot proceed.");
+    return;
+  }
+  console.log("Successfully obtained 'sdcard' device storage object.");
+
+  // Listen for changes (optional)
+  sdcardStorage.onchange = function(event) {
+      console.log(`Storage change detected: Reason: ${event.reason}, Path: ${event.path}`);
+  };
+
+  const availableReq = sdcardStorage.available();
+  availableReq.onsuccess = function() {
+      console.log(`SD card status: ${this.result}`);
+      if (this.result !== "available") {
+          console.warn("SD card is not fully available. Some operations might fail.");
+      }
+      // Proceed with other operations regardless for demo purposes
+      addAndListFiles();
+  };
+  availableReq.onerror = function() {
+      console.error("Error checking SD card availability:", this.error.name);
+      addAndListFiles(); // Proceed anyway for demo
+  };
+
+
+  function addAndListFiles() {
+    // 1. Add a file
+    const myContent = "Hello from simulated sdcard! Time: " + new Date().toLocaleTimeString();
+    const myBlob = new Blob([myContent], { type: 'text/plain' });
+    const filePath = 'documents/testFile.txt'; // KaiOS paths are typically like this
+
+    console.log(`\nAttempting to add file: ${filePath}`);
+    const addRequest = sdcardStorage.addNamed(myBlob, filePath);
+
+    addRequest.onsuccess = function() { // 'this' here is the addRequest object
+      console.log("AddNamed SUCCESS. File path returned by API:", this.result);
+      listFilesAndDirectories("documents/");
+    };
+    addRequest.onerror = function() {
+      console.error("AddNamed ERROR:", this.error.name, this.error.message);
+      // Even if add fails, try to list to see what's there
+      listFilesAndDirectories("documents/");
+    };
+  }
+
+
+  function listFilesAndDirectories(basePathToList) {
+    console.log(`\nEnumerating files/folders in '${basePathToList}':`);
+    const cursor = sdcardStorage.enumerate(basePathToList);
+
+    cursor.onsuccess = function() { // 'this' here is the cursor object
+      if (this.result) {
+        const fileEntry = this.result; // KaiOS file object from enumerate (name is full path)
+        console.log(`  - Found: ${fileEntry.name} (Size: ${fileEntry.size}, Type: ${fileEntry.type}, Modified: ${new Date(fileEntry.lastModified).toLocaleString()})`);
+        // To continue to the next item:
+        this.continue();
+      } else {
+        console.log(`  (No more entries in '${basePathToList}')`);
+        // After listing, proceed to get the content of the file we attempted to add
+        const filePath = 'documents/testFile.txt';
+        getFileContent(filePath);
+      }
+    };
+    cursor.onerror = function() {
+      console.error("Enumerate ERROR:", this.error.name, this.error.message);
+      const filePath = 'documents/testFile.txt';
+      getFileContent(filePath); // Try next step even if enumeration fails
+    };
+  }
+
+  function getFileContent(path) {
+    console.log(`\nAttempting to get file: ${path}`);
+    const getRequest = sdcardStorage.get(path);
+    getRequest.onsuccess = function() { // 'this' is getRequest
+      if (this.result) {
+        const fileObject = this.result; // Standard File object (name is just filename)
+        console.log(`Get SUCCESS: File: ${fileObject.name}, Size: ${fileObject.size}, Type: ${fileObject.type}`);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          console.log("File content:", e.target.result);
+          deleteTheFile(path); // Proceed to delete
+        };
+        reader.onerror = (e) => {
+            console.error("FileReader error:", e.target.error.name);
+            deleteTheFile(path); // Proceed anyway
+        };
+        reader.readAsText(fileObject);
+      } else {
+        console.log(`Get: File '${path}' not found.`);
+        deleteTheFile(path); // Attempt delete anyway to test that path
+      }
+    };
+    getRequest.onerror = function() {
+      console.error("Get ERROR:", this.error.name, this.error.message);
+      deleteTheFile(path); // Proceed anyway
+    };
+  }
+
+  function deleteTheFile(path) {
+      console.log(`\nAttempting to delete file: ${path}`);
+      const deleteRequest = sdcardStorage.delete(path);
+      deleteRequest.onsuccess = function() { // 'this' is deleteRequest
+          console.log(`Delete SUCCESS. Result from API: ${this.result}`); // true if deleted, false if not found
+          checkStorageSpace();
+      };
+      deleteRequest.onerror = function() {
+          console.error("Delete ERROR:", this.error.name, this.error.message);
+          checkStorageSpace(); // Proceed anyway
+      };
+  }
+  
+  function checkStorageSpace() {
+      console.log("\nChecking storage space (simulated values):");
+      const freeSpaceReq = sdcardStorage.freeSpace();
+      freeSpaceReq.onsuccess = function() {
+          console.log(`  Free space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
+      };
+      freeSpaceReq.onerror = function() { console.error("  Error getting free space:", this.error.name); };
+
+      const usedSpaceReq = sdcardStorage.usedSpace(); // Using usedSpace as per KaiOS docs
+      usedSpaceReq.onsuccess = function() {
+          console.log(`  Used space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
+      };
+      usedSpaceReq.onerror = function() { console.error("  Error getting used space:", this.error.name); };
+      
+      const totalSpaceReq = sdcardStorage.totalSpace(); // totalSpace is also common in DeviceStorage API
+      totalSpaceReq.onsuccess = function() {
+          console.log(`  Total space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
+          console.log("\nDemo finished.");
+      };
+      totalSpaceReq.onerror = function() { 
+          console.error("  Error getting total space:", this.error.name);
+          console.log("\nDemo finished (with error on totalSpace).");
+      };
+  }
+}
+
+// --- How to run this in a browser environment: ---
+// 1. Initialize the simulated database and navigator methods (do this once)
+async function main() {
+    try {
+        console.log("Initializing Simulated DeviceStorage DB...");
+        await initSimulatedDeviceStorageDB();
+        console.log("Simulated DB Initialized.");
+
+        // 2. Setup the navigator.getDeviceStorage and navigator.getDeviceStorages simulations
+        setupKaiOSNavigatorSimulation();
+
+        // 3. Now you can run your KaiOS-style code
+        await runKaiOSDeviceStorageDemo();
+
+    } catch (err) {
+        console.error("Main application FAILED:", err);
+    }
+}
+
+// Uncomment to run the demo when this script loads in a browser:
+// main();
+		</script>
+	</div>
+</body>
+
+</html>
