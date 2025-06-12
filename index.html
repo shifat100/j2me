@@ -7,64 +7,182 @@
     <!-- JSZip library is required for extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #0056b3; }
-        #search-box { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        #file-list { list-style-type: none; padding: 0; margin: 0; }
-        #file-list li { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s; }
-        #file-list li:hover { background-color: #e9f5ff; }
-        #file-list li:last-child { border-bottom: none; }
-        .pagination { text-align: center; margin-top: 20px; }
-        .pagination button { padding: 8px 16px; margin: 0 5px; border: 1px solid #007bff; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-        .pagination button:disabled { background-color: #ccc; border-color: #ccc; cursor: not-allowed; }
-        .pagination span { vertical-align: middle; font-weight: bold; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        /* --- CloudFone / KaiOS Inspired UI --- */
+        :root {
+            --background-color: #1c1c1c;
+            --text-color: #ffffff;
+            --primary-color: #00aaff;
+            --highlight-color: #ffc400;
+            --softkey-bar-bg: #333333;
+            --list-item-bg: #2a2a2a;
+            --border-color: #444444;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            /* Prevent scrolling body with D-Pad */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto; /* Allow this part to scroll */
+            padding: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.2em;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        #search-box {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--list-item-bg);
+            color: var(--text-color);
+            font-size: 1em;
+        }
+        #search-box:focus {
+            border-color: var(--highlight-color);
+            outline: none;
+        }
+
+        #file-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #file-list li {
+            padding: 12px 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--list-item-bg);
+            margin-bottom: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        
+        /* Highlight for the selected item (for D-pad navigation) */
+        #file-list li.selected {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            font-weight: bold;
+        }
+
+        .pagination {
+            text-align: center;
+            padding: 10px 0;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* --- Modal --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--list-item-bg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            width: 85%;
+            text-align: center;
+            border-radius: 4px;
+        }
         .modal-content p { margin: 15px 0; }
-        .modal-close-btn { background-color: #f44336; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+
+        /* --- Softkey Bar for KaiOS --- */
+        .softkey-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background-color: var(--softkey-bar-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .softkey-center { color: var(--highlight-color); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>J2ME Game List</h1>
-        <input type="text" id="search-box" oninput="handleSearch()" placeholder="Search for a game...">
-        <ul id="file-list"></ul>
+    <div class="main-content">
+        <h1>J2ME Launcher</h1>
+        <input type="text" id="search-box" oninput="handleSearch()" placeholder="Search...">
         <div id="pagination" class="pagination"></div>
+        <ul id="file-list"></ul>
     </div>
 
     <!-- The Modal Popup -->
     <div id="extraction-modal" class="modal">
         <div class="modal-content">
             <p id="modal-message">Extracting MIDlet...</p>
-            <button id="modal-close-btn" class="modal-close-btn" style="display:none;" onclick="closeModal()">Close</button>
         </div>
+    </div>
+    
+    <!-- Softkey Bar -->
+    <div class="softkey-bar">
+        <span id="softkey-left"></span>
+        <span id="softkey-center" class="softkey-center"></span>
+        <span id="softkey-right"></span>
     </div>
 
     <script>
         // --- GLOBAL STATE ---
-        var allFiles = [];
-        var filteredFiles = [];
-        var currentPage = 1;
-        var itemsPerPage = 10;
+        let allFiles = [];
+        let filteredFiles = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        
+        // --- KAIOS KEYBOARD STATE ---
+        let currentIndex = -1; // -1 for search box, 0+ for list items
+        let currentFocus = 'search'; // 'search', 'list', 'modal'
 
         // --- CORE LOGIC ---
-
-        // This function is called when the page loads
-        window.onload = function() {
+        window.onload = () => {
             fetchFileList();
+            window.addEventListener('keydown', handleKeyDown);
+            document.getElementById('search-box').focus();
+            updateSoftkeys();
         };
 
-        // 1. Fetch the list.txt file
         function fetchFileList() {
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.open('GET', 'list.txt', true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    allFiles = xhr.responseText.split(/\r?\n/).filter(function(line) {
-                        return line.trim() !== '';
-                    });
+                    allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '');
                     filteredFiles = allFiles;
                     renderPage();
                 } else if (xhr.readyState === 4) {
@@ -74,9 +192,8 @@
             xhr.send();
         }
 
-        // 2. Render the current page of files and the pagination controls
         function renderPage() {
-            var listElement = document.getElementById('file-list');
+            const listElement = document.getElementById('file-list');
             listElement.innerHTML = '';
 
             if (filteredFiles.length === 0) {
@@ -85,112 +202,198 @@
                 return;
             }
 
-            var startIndex = (currentPage - 1) * itemsPerPage;
-            var endIndex = startIndex + itemsPerPage;
-            var pageItems = filteredFiles.slice(startIndex, endIndex);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageItems = filteredFiles.slice(startIndex, endIndex);
 
-            for (var i = 0; i < pageItems.length; i++) {
-                var filePath = pageItems[i];
-                var fileName = filePath.substring(filePath.lastIndexOf('/') + 1).replace('.jar', '');
-                var listItem = document.createElement('li');
+            for (let i = 0; i < pageItems.length; i++) {
+                const filePath = pageItems[i];
+                const fileName = filePath.substring(filePath.lastIndexOf('/') + 1).replace('.jar', '');
+                const listItem = document.createElement('li');
                 listItem.textContent = fileName;
                 listItem.setAttribute('data-path', filePath);
-                listItem.onclick = handleFileClick;
+                listItem.onclick = () => handleFileClick(filePath);
                 listElement.appendChild(listItem);
             }
             renderPagination();
+            // After rendering, reset focus to the first item on the new page
+            currentIndex = 0;
+            currentFocus = 'list';
+            updateSelection();
         }
 
-        // 3. Render pagination buttons and page info
         function renderPagination() {
-            var paginationElement = document.getElementById('pagination');
-            var totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            const paginationElement = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
             paginationElement.innerHTML = '';
-
             if (totalPages <= 1) return;
-
-            var prevButton = document.createElement('button');
-            prevButton.textContent = 'Previous';
-            prevButton.onclick = function() { if (currentPage > 1) { currentPage--; renderPage(); } };
-            prevButton.disabled = currentPage === 1;
-
-            var nextButton = document.createElement('button');
-            nextButton.textContent = 'Next';
-            nextButton.onclick = function() { if (currentPage < totalPages) { currentPage++; renderPage(); } };
-            nextButton.disabled = currentPage === totalPages;
-
-            var pageInfo = document.createElement('span');
-            pageInfo.textContent = ' Page ' + currentPage + ' of ' + totalPages + ' ';
-
-            paginationElement.appendChild(prevButton);
-            paginationElement.appendChild(pageInfo);
-            paginationElement.appendChild(nextButton);
+            paginationElement.textContent = `Page ${currentPage} of ${totalPages}`;
         }
-
-        // 4. Handle search input
+        
         function handleSearch() {
-            var searchTerm = document.getElementById('search-box').value.toLowerCase();
-            filteredFiles = allFiles.filter(function(file) {
-                return file.toLowerCase().indexOf(searchTerm) > -1;
-            });
+            const searchTerm = document.getElementById('search-box').value.toLowerCase();
+            filteredFiles = allFiles.filter(file => file.toLowerCase().includes(searchTerm));
             currentPage = 1;
             renderPage();
         }
 
-        // 5. Handle clicking a file in the list
-        function handleFileClick(event) {
-            var filePath = event.target.getAttribute('data-path');
-            var fullUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/' + filePath;
+        function handleFileClick(filePath) {
+            const fullUrl = `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/${filePath}`;
+            showModal(`Extracting MIDlet from ${filePath}...`);
 
-            showModal('Extracting MIDlet from ' + filePath + '...');
-
-            extractMidletClassName_ES5(filePath, function(error, midletName) {
+            extractMidletClassName_ES5(filePath, (error, midletName) => {
                 if (error) {
-                    showModal('Error: ' + error.message, true); // Show error and close button
+                    showModal(`Error: ${error.message}`, true);
                 } else {
-                    // Success! Redirect to main.html with parameters
-                    var redirectUrl = 'main.html?jarlink=' + encodeURIComponent(fullUrl) + '&midlet=' + encodeURIComponent(midletName);
+                    const redirectUrl = `main.html?jarlink=${encodeURIComponent(fullUrl)}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
                 }
             });
         }
 
+        // --- KAIOS KEYBOARD CONTROL ---
+
+        function handleKeyDown(event) {
+            if (currentFocus === 'modal') {
+                if (event.key === 'Enter' || event.key === 'Backspace') {
+                    closeModal();
+                }
+                return;
+            }
+            
+            // Prevent default scroll on arrow keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                event.preventDefault();
+            }
+
+            switch (event.key) {
+                case 'ArrowDown':
+                    if (currentFocus === 'search') {
+                        currentFocus = 'list';
+                        currentIndex = 0;
+                    } else if (currentFocus === 'list' && filteredFiles.length > 0) {
+                        currentIndex++;
+                        if (currentIndex >= document.getElementById('file-list').children.length) {
+                             currentIndex = 0; // Wrap to top
+                        }
+                    }
+                    updateSelection();
+                    break;
+                case 'ArrowUp':
+                    if (currentFocus === 'list') {
+                        currentIndex--;
+                        if (currentIndex < 0) {
+                             const listItems = document.getElementById('file-list').children;
+                             currentIndex = listItems.length > 0 ? listItems.length - 1 : -1; // Wrap to bottom
+                        }
+                        if (currentIndex === -1) {
+                            currentFocus = 'search';
+                        }
+                    }
+                    updateSelection();
+                    break;
+                case 'ArrowRight':
+                    const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                    break;
+                case 'Enter':
+                    if (currentFocus === 'list' && currentIndex > -1) {
+                        const selectedItem = document.getElementById('file-list').children[currentIndex];
+                        if (selectedItem) {
+                            selectedItem.click();
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function updateSelection() {
+            const listItems = document.getElementById('file-list').children;
+            
+            // Unselect all items
+            for (let i = 0; i < listItems.length; i++) {
+                listItems[i].classList.remove('selected');
+            }
+            document.getElementById('search-box').style.borderColor = 'var(--border-color)';
+
+            if (currentFocus === 'search') {
+                document.getElementById('search-box').focus();
+                document.getElementById('search-box').style.borderColor = 'var(--highlight-color)';
+            } else if (currentFocus === 'list' && currentIndex > -1 && listItems[currentIndex]) {
+                document.getElementById('search-box').blur();
+                const selectedItem = listItems[currentIndex];
+                selectedItem.classList.add('selected');
+                // Scroll item into view if needed
+                selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+            updateSoftkeys();
+        }
+
+        function updateSoftkeys() {
+            const left = document.getElementById('softkey-left');
+            const center = document.getElementById('softkey-center');
+            const right = document.getElementById('softkey-right');
+
+            if (currentFocus === 'modal') {
+                left.textContent = '';
+                center.textContent = 'CLOSE';
+                right.textContent = '';
+            } else {
+                left.textContent = 'Options'; // Placeholder
+                center.textContent = 'SELECT';
+                right.textContent = 'Exit'; // Placeholder
+            }
+        }
+        
         // --- MODAL & EXTRACTION ---
 
-        function showModal(message, isError) {
+        function showModal(message, isError = false) {
+            currentFocus = 'modal';
             document.getElementById('modal-message').textContent = message;
-            document.getElementById('modal-close-btn').style.display = isError ? 'inline-block' : 'none';
-            document.getElementById('extraction-modal').style.display = 'block';
+            document.getElementById('extraction-modal').style.display = 'flex';
+            updateSoftkeys();
+            // In a real KaiOS app, a "Close" button might not be needed if the center key handles it.
+            // But we'll leave the logic in place.
         }
 
         function closeModal() {
+            currentFocus = 'list';
             document.getElementById('extraction-modal').style.display = 'none';
+            updateSelection();
+            updateSoftkeys();
         }
 
         /**
          * ES5 version to extract MIDlet class name from a JAR file.
+         * (This function remains unchanged as its logic is sound)
          * @param {string} zipUrl The URL of the .jar file.
          * @param {function(Error|null, string|null)} callback The callback function.
          */
         function extractMidletClassName_ES5(zipUrl, callback) {
-            var proxyUrl = 'https://corsproxy.io/?'; // CORS proxy to fetch from the same origin if needed, but often not necessary for relative paths.
-            var fullUrl = zipUrl; // We are using relative paths, so proxy might not be needed.
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', fullUrl, true);
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', zipUrl, true);
             xhr.responseType = 'arraybuffer';
 
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     JSZip.loadAsync(xhr.response).then(function(zip) {
-                        var manifestFile = zip.file("META-INF/MANIFEST.MF");
+                        const manifestFile = zip.file("META-INF/MANIFEST.MF");
                         if (!manifestFile) {
                             return callback(new Error("META-INF/MANIFEST.MF not found."), null);
                         }
                         manifestFile.async("string").then(function(content) {
-                            var lines = content.split(/\r?\n/);
-                            var midletLine = null;
-                            for (var i = 0; i < lines.length; i++) {
+                            const lines = content.split(/\r?\n/);
+                            let midletLine = null;
+                            for (let i = 0; i < lines.length; i++) {
                                 if (lines[i].match(/^MIDlet-\d+:/)) {
                                     midletLine = lines[i];
                                     break;
@@ -199,20 +402,20 @@
                             if (!midletLine) {
                                 return callback(new Error("MIDlet-N attribute not found."), null);
                             }
-                            var parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
+                            const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
                             if (parts.length < 3) {
                                 return callback(new Error("Malformed MIDlet attribute line."), null);
                             }
-                            var className = parts[parts.length - 1].trim();
+                            const className = parts[parts.length - 1].trim();
                             callback(null, className);
-                        }).catch(function(err){ callback(err, null); });
-                    }).catch(function(err){ callback(err, null); });
+                        }).catch(err => callback(err, null));
+                    }).catch(err => callback(err, null));
                 } else {
-                    callback(new Error("Failed to fetch JAR file (Status: " + xhr.status + ")"), null);
+                    callback(new Error(`Failed to fetch JAR (Status: ${xhr.status})`), null);
                 }
             };
             xhr.onerror = function() {
-                callback(new Error("Network error during JAR file fetch."), null);
+                callback(new Error("Network error during JAR fetch."), null);
             };
             xhr.send();
         }
