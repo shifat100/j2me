@@ -264,7 +264,7 @@
                 } else {
                     // **FIX:** Hide the modal cleanly before starting the redirect.
                     document.getElementById('extraction-modal').style.display = 'none';
-                    const redirectUrl = `main.html?jarlink=${encodeURIComponent(+'jars/'+fullUrl.substring(filePath.lastIndexOf('/') + 1))}&midlet=${encodeURIComponent(midletName)}`;
+                    const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
                 }
             });
