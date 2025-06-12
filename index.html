@@ -110,7 +110,40 @@
             border-radius: 4px;
         }
         .modal-content p { margin: 15px 0; }
-
+        
+        /* --- NEW: Styles for the Tips Modal --- */
+        #tips-modal .modal-content {
+            padding: 10px;
+        }
+        #tips-image {
+            max-width: 100%;
+            max-height: 60vh; /* Don't let the image be too tall */
+            border-radius: 3px;
+            margin-bottom: 15px;
+        }
+        .tips-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .tips-checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        #close-tips-btn {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        
         .softkey-bar {
             position: fixed;
             bottom: 0;
@@ -145,6 +178,20 @@
         </div>
     </div>
     
+    <!-- NEW: Tips Modal for CloudPhone users -->
+    <div id="tips-modal" class="modal">
+        <div class="modal-content">
+            <img id="tips-image" src="tips.png" alt="Usage Tips">
+            <div class="tips-controls">
+                <div class="tips-checkbox-container">
+                    <input type="checkbox" id="dont-show-again-checkbox">
+                    <label for="dont-show-again-checkbox">Don't show again</label>
+                </div>
+                <button id="close-tips-btn">Close</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="softkey-bar">
         <span id="softkey-left"></span>
         <span id="softkey-center" class="softkey-center"></span>
@@ -160,41 +207,50 @@
         
         // --- KAIOS KEYBOARD STATE ---
         var currentIndex = -1; // -1 for search box, 0+ for list items
-        var currentFocus = 'search'; // 'search', 'list', 'modal'
+        var currentFocus = 'search'; // 'search', 'list', 'modal', 'tips-modal'
+
+        // --- FEATURE DETECTION ---
+        /**
+         * Checks if the user agent indicates a Cloud Phone environment.
+         * @returns {boolean}
+         */
+        function isCloudPhone() {
+            const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
+            return normalizedUserAgent.includes('cloud phone');
+        }
 
         // --- CORE LOGIC ---
         window.onload = () => {
+            handleCloudPhoneTips(); // Check for tips modal first
             fetchFileList();
             window.addEventListener('keydown', handleKeyDown);
+
+            // Setup tips modal interactions
+            document.getElementById('close-tips-btn').addEventListener('click', closeTipsModal);
+
             document.getElementById('search-box').focus();
-            updateSelection(); // Changed from updateSoftkeys() to ensure search box is highlighted on load
+            updateSelection();
         };
         
-        // **FIX:** Add a pageshow listener to reset state when navigating back to the page
         window.addEventListener('pageshow', (event) => {
-            // The event.persisted property is true if the page is being loaded from the cache.
             if (event.persisted) {
-                // Hide any stale modals
                 document.getElementById('extraction-modal').style.display = 'none';
-                
-                // Reset search bar
                 const searchBox = document.getElementById('search-box');
                 searchBox.value = '';
-                
-                // Re-trigger the filter logic to show all files and reset the view
                 handleSearch();
             }
         });
 
 
         function fetchFileList() {
+            // ... (rest of the function is unchanged)
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'list.txt', true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '');
                     filteredFiles = allFiles;
-                    renderPage(true); // Initial render should keep focus on search
+                    renderPage(true);
                 } else if (xhr.readyState === 4) {
                     document.getElementById('file-list').innerHTML = '<li>Error loading file list.</li>';
                 }
@@ -202,21 +258,18 @@
             xhr.send();
         }
 
-        // **FIX:** Added 'keepFocusOnSearch' parameter to prevent stealing focus while typing.
         function renderPage(keepFocusOnSearch = false) {
+             // ... (function is unchanged)
             const listElement = document.getElementById('file-list');
             listElement.innerHTML = '';
-
             if (filteredFiles.length === 0) {
                 listElement.innerHTML = '<li>No files found.</li>';
                 renderPagination();
                 return;
             }
-
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageItems = filteredFiles.slice(startIndex, endIndex);
-
             pageItems.forEach(filePath => {
                 const fileName = filePath.substring(filePath.lastIndexOf('/') + 1).replace('.jar', '');
                 const listItem = document.createElement('li');
@@ -225,15 +278,11 @@
                 listItem.onclick = () => handleFileClick(filePath);
                 listElement.appendChild(listItem);
             });
-            
             renderPagination();
-            
             if (!keepFocusOnSearch) {
-                // After changing pages, focus on the first item in the list
                 currentFocus = 'list';
                 currentIndex = 0;
             } else {
-                // After searching, keep focus on search, but reset list index
                 currentFocus = 'search';
                 currentIndex = -1;
             }
@@ -241,28 +290,28 @@
         }
 
         function renderPagination() {
+             // ... (function is unchanged)
             const paginationElement = document.getElementById('pagination');
             const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
             paginationElement.innerHTML = (totalPages > 1) ? `Page ${currentPage} of ${totalPages}` : '';
         }
         
         function handleSearch() {
+             // ... (function is unchanged)
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.toLowerCase().includes(searchTerm));
             currentPage = 1;
-            // Re-render the page but signal to keep focus on the search box
             renderPage(true);
         }
 
         function handleFileClick(filePath) {
+             // ... (function is unchanged)
             const fullUrl = `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/${filePath}`;
             showModal(`Extracting MIDlet from ${filePath}...`);
-
             extractMidletClassName_ES5(filePath, (error, midletName) => {
                 if (error) {
                     showModal(`Error: ${error.message}`, true);
                 } else {
-                    // **FIX:** Hide the modal cleanly before starting the redirect.
                     document.getElementById('extraction-modal').style.display = 'none';
                     const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
@@ -272,6 +321,15 @@
 
         // --- KAIOS KEYBOARD CONTROL ---
         function handleKeyDown(event) {
+            // NEW: Handle keydown for the new tips modal
+            if (currentFocus === 'tips-modal') {
+                if (event.key === 'Enter' || event.key === 'Backspace') {
+                    event.preventDefault();
+                    closeTipsModal();
+                }
+                return;
+            }
+            
             if (currentFocus === 'modal') {
                 if (event.key === 'Enter' || event.key === 'Backspace') {
                     closeModal();
@@ -284,6 +342,7 @@
             }
 
             switch (event.key) {
+                // ... (rest of the switch statement is unchanged)
                 case 'ArrowDown':
                     if (currentFocus === 'search' && filteredFiles.length > 0) {
                         currentFocus = 'list';
@@ -328,12 +387,11 @@
         }
 
         function updateSelection() {
+            // ... (function is unchanged)
             const searchBox = document.getElementById('search-box');
             const listItems = document.getElementById('file-list').children;
-            
             Array.from(listItems).forEach(item => item.classList.remove('selected'));
             searchBox.classList.remove('selected');
-            
             if (currentFocus === 'search') {
                 searchBox.classList.add('selected');
                 searchBox.focus();
@@ -351,7 +409,12 @@
             const center = document.getElementById('softkey-center');
             const right = document.getElementById('softkey-right');
 
-            if (currentFocus === 'modal') {
+            // NEW: Handle softkeys for tips modal
+            if (currentFocus === 'tips-modal') {
+                left.textContent = '';
+                center.textContent = 'CLOSE';
+                right.textContent = '';
+            } else if (currentFocus === 'modal') {
                 left.textContent = '';
                 center.textContent = 'CLOSE';
                 right.textContent = '';
@@ -362,8 +425,41 @@
             }
         }
         
+        // --- CLOUDPHONE TIPS MODAL LOGIC ---
+        function handleCloudPhoneTips() {
+            if (!isCloudPhone()) return; // Only run for cloud phones
+
+            const hideTips = localStorage.getItem('hideCloudPhoneTips') === 'true';
+            if (hideTips) return; // User has opted out
+
+            let visitCount = parseInt(localStorage.getItem('cloudPhoneVisitCount') || '0', 10);
+            if (visitCount < 3) {
+                // Show the modal
+                currentFocus = 'tips-modal';
+                document.getElementById('tips-modal').style.display = 'flex';
+                updateSoftkeys();
+                
+                // Increment and save the new visit count
+                localStorage.setItem('cloudPhoneVisitCount', visitCount + 1);
+            }
+        }
+
+        function closeTipsModal() {
+            const checkbox = document.getElementById('dont-show-again-checkbox');
+            if (checkbox.checked) {
+                localStorage.setItem('hideCloudPhoneTips', 'true');
+            }
+            
+            document.getElementById('tips-modal').style.display = 'none';
+
+            // Restore focus to the main UI
+            currentFocus = (currentIndex > -1) ? 'list' : 'search';
+            updateSelection(); // This also updates softkeys
+        }
+
         // --- MODAL & EXTRACTION ---
         function showModal(message, isError = false) {
+            // ... (function is unchanged)
             currentFocus = 'modal';
             document.getElementById('modal-message').textContent = message;
             document.getElementById('extraction-modal').style.display = 'flex';
@@ -371,7 +467,7 @@
         }
 
         function closeModal() {
-            // Restore focus to the list or search box depending on what was last active
+             // ... (function is unchanged)
             currentFocus = (currentIndex > -1) ? 'list' : 'search';
             document.getElementById('extraction-modal').style.display = 'none';
             updateSelection();
@@ -379,6 +475,7 @@
 
         // Unchanged ES5 MIDlet extraction function
         function extractMidletClassName_ES5(zipUrl, callback) {
+             // ... (function is unchanged)
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
             xhr.responseType = 'arraybuffer';
