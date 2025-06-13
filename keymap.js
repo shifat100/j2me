@@ -157,14 +157,7 @@ function handleKeyup(e) {
         keyDownTime_Star = 0;
         window.location.href = "/index.html";
       } else {
-        var canvas = document.querySelector('canvas');
-        var a = document.createElement("a");
-        a.href = canvas.toDataURL("image/jpeg");
-        a.download = localStorage.getItem("focusedJar") + "_" + new Date().getTime().toString() + ".jpg";
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+           MIDP.sendKeyRelease(-7);
       }
       break;
   }
@@ -174,6 +167,10 @@ function handleKeyup(e) {
 //document.οnkeyup=handleKeyup;
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyup);
+window.addEventListener("back", (event) => {
+  event.preventDefault();
+ MIDP.sendKeyRelease(-7);
+});
 
 var SupportsTouches =
   "ontouchstart" in window ||
