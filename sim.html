@@ -4,10 +4,12 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-	<title>Simulator</title>
+	<title>J2me Simulator</title>
 </head>
 
 <body>
+<a href="https://github.com/shifat100/j2me">Github Repository</a>
+
 	<div class="container">
 		<div class="panel help">
 
@@ -21,7 +23,7 @@
 			</ul>
 		</div>
 		<div class="panel device">
-			<div class="header">
+			<div class="header" style="display:none">
 				<div class="headersection left">
 					<div class="headeritem mode">♻</div>
 				</div>
@@ -211,7 +213,7 @@
 
 			#appFrame {
 				width: 240px;
-				height: 290px;
+				height: 320px;
 				border: 0;
 			}
 
@@ -558,650 +560,269 @@
 			// The current system relies on click handlers and dispatching keydown events.
 			// If keyup events are needed, keyHandlers and dispatchKeyToDoc would need further modifications.
 			// -------------------- DUMMY IMPLEMENTATION START --------------------
-/**
- * KaiOS DeviceStorage API Simulator using IndexedDB
- */
-// --- Helper: SimulatedDOMRequest ---
-class SimulatedDOMRequest {
-  constructor() {
+
+// Dummy data for our 'pictures' storage
+const DUMMY_STORAGE_DATA = {
+    pictures: [
+        { name: "holidays/beach.jpg", lastModifiedDate: new Date("2023-01-15T10:00:00Z"), type: "image/jpeg", size: 1024*500 },
+        { name: "pets/cat.png", lastModifiedDate: new Date("2023-03-22T15:30:00Z"), type: "image/png", size: 1024*200 },
+        { name: "food/sushi.gif", lastModifiedDate: new Date("2024-05-01T09:15:00Z"), type: "image/gif", size: 1024*800 },
+        { name: "holidays/mountains.jpg", lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), type: "image/jpeg", size: 1024*600 }, // 2 days ago
+        { name: "screenshots/error_log.png", lastModifiedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: "image/png", size: 1024*50 } // 10 days ago
+    ],
+    music: [
+        { name: "song1.mp3", lastModifiedDate: new Date(), type: "audio/mpeg", size: 1024*3000 },
+    ],
+    sdcard: [
+         { name: "my-file.txt", lastModifiedDate: new Date(), type: "text/plain", size: 20 }
+    ]
+    // Add other storage areas if needed
+};
+
+// Mock for navigator object if it doesn't exist (e.g., running in Node.js)
+if (typeof navigator === 'undefined') {
+    global.navigator = {};
+}
+
+// --- Mock DeviceStorage ---
+function MockDeviceStorage(storageName) {
+    this.storageName = storageName;
+    this.data = DUMMY_STORAGE_DATA[storageName] || [];
+
+    console.log(`MockDeviceStorage for "${storageName}" initialized with ${this.data.length} items.`);
+
+    this.enumerate = function(pathPrefixOrOptions, optionsOnly) {
+        let pathPrefix = null;
+        let options = {};
+
+        if (typeof pathPrefixOrOptions === 'string') {
+            pathPrefix = pathPrefixOrOptions;
+            if (typeof optionsOnly === 'object' && optionsOnly !== null) {
+                options = optionsOnly;
+            }
+        } else if (typeof pathPrefixOrOptions === 'object' && pathPrefixOrOptions !== null) {
+            options = pathPrefixOrOptions;
+        }
+        
+        console.log(`Enumerating ${this.storageName}: pathPrefix="${pathPrefix}", options=`, options);
+        return new MockDOMCursor(this.data, pathPrefix, options.since);
+    };
+
+    // Add other methods like addNamed, get, delete as needed for further testing
+    this.get = function(fileName) {
+        console.log(`MockDeviceStorage: Attempting to get "${fileName}" from "${this.storageName}"`);
+        const request = new MockDOMRequest();
+        setTimeout(() => { // Simulate async
+            const file = this.data.find(f => f.name === fileName);
+            if (file) {
+                request.result = file; // In reality, this would be a File object
+                if (request.onsuccess) request.onsuccess();
+            } else {
+                request.error = new Error("File not found");
+                if (request.onerror) request.onerror();
+            }
+        }, 50);
+        return request;
+    };
+}
+
+// --- Mock DOMCursor (as returned by enumerate) ---
+function MockDOMCursor(allFiles, pathPrefix, sinceDate) {
+    this.files = allFiles.filter(file => {
+        let match = true;
+        if (pathPrefix && !file.name.startsWith(pathPrefix)) {
+            match = false;
+        }
+        if (sinceDate && file.lastModifiedDate < sinceDate) {
+            match = false;
+        }
+        return match;
+    });
+
+    this.currentIndex = -1;
     this.result = null;
-    this.error = null; // Should be an object like { name: '', message: '' }
-    this.readyState = 'pending'; // 'pending', 'done'
+    this.done = false; // KaiOS specific? The web File System API usually doesn't have this on cursor.
+                       // The second example uses `!this.done`, so let's include it.
+
+    this.onsuccess = null;
+    this.onerror = null; // Typically for I/O errors during iteration, not "no files found"
+
+    this._advance = function() {
+        this.currentIndex++;
+        if (this.currentIndex < this.files.length) {
+            this.result = this.files[this.currentIndex]; // This would be a File object in reality
+            this.done = false;
+        } else {
+            this.result = null; // Signifies no more items
+            this.done = true;
+        }
+    };
+
+    this.continue = function() {
+        console.log("Cursor: continue() called");
+        if (this.done) { // If already done, calling continue might re-trigger onsuccess with done=true
+            console.log("Cursor: already done, calling onsuccess again.");
+             if (typeof this.onsuccess === 'function') {
+                // Ensure result is null and done is true
+                this.result = null; 
+                this.done = true;
+                setTimeout(() => this.onsuccess(), 0); // Simulate async
+            }
+            return;
+        }
+        this._advance();
+        if (typeof this.onsuccess === 'function') {
+            // Simulate async call
+            setTimeout(() => this.onsuccess(), 0);
+        } else {
+            console.warn("Cursor: onsuccess not defined!");
+        }
+    };
+
+    // Initial call to prime the first result (or indicate empty)
+    // This mimics the asynchronous nature and that onsuccess is called once initially.
+    setTimeout(() => {
+        this._advance(); // Get the first item or set done=true
+        if (typeof this.onsuccess === 'function') {
+            this.onsuccess();
+        } else if (this.files.length === 0 && typeof this.onerror === 'function') {
+            // The original doc example implies onerror for "No file found"
+            // but usually onsuccess is called with result=null and done=true.
+            // Let's stick to onsuccess always being called as per `if(cursor.result.name !== null)`
+            // or `if (!this.done)`
+        }
+    }, 0); // Simulate async
+}
+
+// --- Mock DOMRequest (for methods like get, addNamed, delete) ---
+function MockDOMRequest() {
+    this.result = null;
+    this.error = null;
     this.onsuccess = null;
     this.onerror = null;
-  }
-
-  _resolve(result) {
-    if (this.readyState === 'done') return;
-    this.result = result;
-    this.readyState = 'done';
-    if (this.onsuccess) {
-      try {
-        // The event object passed to onsuccess should have a target property
-        // 'this' inside the handler will be the request object itself
-        this.onsuccess.call(this, { target: this });
-      } catch (e) {
-        console.error("Error in onsuccess handler:", e);
-      }
-    }
-  }
-
-  _reject(error) {
-    if (this.readyState === 'done') return;
-    this.error = error;
-    this.readyState = 'done';
-    if (this.onerror) {
-      try {
-        // 'this' inside the handler will be the request object itself
-        this.onerror.call(this, { target: this });
-      } catch (e) {
-        console.error("Error in onerror handler:", e);
-      }
-    }
-  }
-}
-
-// --- Helper: Create File-like objects ---
-// For enumerate(), the result.name is the full path
-function createKaiOSFileObjectForEnumeration(storedEntry) {
-  return {
-    name: storedEntry.fullPath, // Full path as name
-    size: storedEntry.blob.size,
-    type: storedEntry.blob.type,
-    lastModified: storedEntry.lastModified,
-    // This is not a true File instance, but matches KaiOS enumeration result structure.
-  };
-}
-
-// For get(), the result is a standard File object, where file.name is the filename.
-function createStandardFileObject(storedEntry) {
-  const filename = storedEntry.fullPath.substring(storedEntry.fullPath.lastIndexOf('/') + 1);
-  return new File([storedEntry.blob], filename, {
-    type: storedEntry.blob.type,
-    lastModified: storedEntry.lastModified,
-  });
+    // KaiOS also seems to use `this.readyState = "done"` when complete, but not strictly needed for this.
 }
 
 
-// --- SimulatedDeviceStorage Class ---
-class SimulatedDeviceStorage {
-  constructor(db, storageName) {
-    this._db = db;
-    this._storageName = storageName; // e.g., "pictures"
-    this._objectStoreName = `${storageName}_store`;
-    this.onchange = null; // Placeholder for the onchange event handler
-  }
-
-  _getTransaction(mode = 'readonly') {
-    if (!this._db || typeof this._db.transaction !== 'function') { // More robust check
-        throw new Error("IndexedDB connection is not valid or has been closed.");
+// --- Main Entry Point Mock ---
+navigator.getDeviceStorage = function(storageName) {
+    console.log(`navigator.getDeviceStorage called with: ${storageName}`);
+    if (DUMMY_STORAGE_DATA[storageName]) {
+        return new MockDeviceStorage(storageName);
     }
-    try {
-        const transaction = this._db.transaction(this._objectStoreName, mode);
-        return transaction.objectStore(this._objectStoreName);
-    } catch (e) {
-        console.error(`Error getting transaction for ${this._objectStoreName} with mode ${mode}:`, e);
-        throw e;
+    console.error(`Storage area "${storageName}" not mocked.`);
+    // To prevent errors, return a dummy storage that will yield no files
+    return new MockDeviceStorage("__empty__"); 
+};
+
+navigator.getDeviceStorages = function(storageName) {
+    console.log(`navigator.getDeviceStorages called with: ${storageName}`);
+    // This is a simplified mock. A real one would return an array,
+    // potentially differentiating between internal and external 'sdcard'.
+    if (DUMMY_STORAGE_DATA[storageName]) {
+        return [new MockDeviceStorage(storageName)]; // Return as an array
     }
-  }
+    console.error(`Storage area "${storageName}" not mocked for getDeviceStorages.`);
+    return [new MockDeviceStorage("__empty__")];
+};
 
-  _notifyChange(changeData) {
-    if (typeof this.onchange === 'function') {
-        // changeData could be { reason: 'created'/'modified'/'deleted', path: '...' }
-        // This is a simplified event object. Real KaiOS event is more complex.
-        try {
-            this.onchange({
-                reason: changeData.reason,
-                path: changeData.path
-            });
-        } catch (e) {
-            console.error("Error in onchange handler:", e);
-        }
-    }
-  }
+// -------------------- DUMMY IMPLEMENTATION END --------------------
 
-  addNamed(blob, filename) {
-    const request = new SimulatedDOMRequest();
+console.log("---- Running first enumerate example ----");
+var pics_example1 = navigator.getDeviceStorage('pictures');
 
-    if (this._storageName === 'apps') {
-      setTimeout(() => request._reject({ name: 'NoModificationAllowedError', message: 'Cannot add to read-only "apps" storage.' }), 0);
-      return request;
-    }
+// Let's browse all the images available
+var cursor_example1 = pics_example1.enumerate();
 
-    const storeItem = {
-      fullPath: filename,
-      blob: blob,
-      size: blob.size,
-      type: blob.type,
-      lastModified: Date.now(),
-    };
-
-    try {
-      const idbStore = this._getTransaction('readwrite');
-      const idbRequest = idbStore.put(storeItem);
-
-      idbRequest.onsuccess = () => {
-        request._resolve(filename); // KaiOS addNamed result is the path
-        this._notifyChange({ reason: 'created', path: filename });
-      };
-      idbRequest.onerror = (event) => {
-        request._reject({ name: event.target.error.name, message: event.target.error.message });
-      };
-    } catch (e) {
-        setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for addNamed." }),0);
-    }
-    return request;
-  }
-
-  get(filename) {
-    const request = new SimulatedDOMRequest();
-    try {
-      const idbStore = this._getTransaction('readonly');
-      const idbRequest = idbStore.get(filename);
-
-      idbRequest.onsuccess = (event) => {
-        if (event.target.result) {
-          request._resolve(createStandardFileObject(event.target.result));
-        } else {
-          request._resolve(null); // File not found
-        }
-      };
-      idbRequest.onerror = (event) => {
-        request._reject({ name: event.target.error.name, message: event.target.error.message });
-      };
-    } catch (e) {
-      setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for get." }),0);
-    }
-    return request;
-  }
-
-  getEditable(filename) {
-    // For this simulation, getEditable is the same as get.
-    // A more complete simulation might return a different type of object or handle locking.
-    return this.get(filename);
-  }
-
-  delete(filename) {
-    const request = new SimulatedDOMRequest();
-
-    if (this._storageName === 'apps') {
-      setTimeout(() => request._reject({ name: 'NoModificationAllowedError', message: 'Cannot delete from read-only "apps" storage.' }), 0);
-      return request;
-    }
-
-    try {
-      const idbStore = this._getTransaction('readwrite');
-      const getRequest = idbStore.getKey(filename);
-
-      getRequest.onsuccess = () => {
-        if (getRequest.result === undefined) {
-          request._resolve(false); // File not found, deletion "succeeds" with false
-        } else {
-          const deleteRequest = idbStore.delete(filename);
-          deleteRequest.onsuccess = () => {
-            request._resolve(true); // Deletion successful
-            this._notifyChange({ reason: 'deleted', path: filename });
-          };
-          deleteRequest.onerror = (event) => {
-            request._reject({ name: event.target.error.name, message: event.target.error.message });
-          };
-        }
-      };
-      getRequest.onerror = (event) => {
-        request._reject({ name: event.target.error.name, message: event.target.error.message });
-      };
-    } catch (e) {
-      setTimeout(() => request._reject({ name: e.name || "TransactionError", message: e.message || "Failed to start transaction for delete." }),0);
-    }
-    return request;
-  }
-
-  enumerate(basePath = "") {
-    const cursorRequest = new SimulatedDOMRequest();
-    let idbCursorInstance = null;
-
-    cursorRequest.continue = function() {
-      if (this.readyState !== 'pending') {
-          if (this.result === null && this.error === null && this.onsuccess) {
-              try { this.onsuccess.call(this, {target: this}); } catch(e) { console.error("Error in cursor.onsuccess after continue (exhausted):", e); }
-          }
-          return;
-      }
-      if (idbCursorInstance) {
-        idbCursorInstance.continue();
-      } else {
-        this.result = null;
-        if (this.onsuccess && !this.error) {
-             try { this.onsuccess.call(this, { target: this }); } catch (e) { console.error("Error in cursor.onsuccess after continue (no active IDBCursor):", e); }
-        }
-      }
-    }.bind(cursorRequest);
-
-    try {
-      const idbStore = this._getTransaction('readonly');
-      // Normalize basePath: ensure it ends with / if it's meant as a directory prefix
-      // and is not empty. For simplicity, we assume basePath is used as a prefix.
-      // A more accurate simulation would handle specific KaiOS path logic
-      // (file vs. directory based on trailing '/').
-      const range = basePath ? IDBKeyRange.lowerBound(basePath) : null;
-      const idbOpenCursorRequest = idbStore.openCursor(range);
-
-      idbOpenCursorRequest.onsuccess = (event) => {
-        idbCursorInstance = event.target.result;
-        if (idbCursorInstance) {
-          const storedFile = idbCursorInstance.value;
-          // Filter items that are truly within or at the basePath
-          if (storedFile.fullPath.startsWith(basePath)) {
-            // TODO: For stricter directory listing (non-recursive), add depth check:
-            // e.g. if (basePath.endsWith('/') && storedFile.fullPath.substring(basePath.length).includes('/')) {
-            //   idbCursorInstance.continue(); return; /* It's in a sub-directory */
-            // }
-            cursorRequest.result = createKaiOSFileObjectForEnumeration(storedFile);
-          } else {
-            // No longer matches prefix, effectively end of relevant items for this basePath
-            idbCursorInstance = null; // Stop trying to continue this IDB cursor
-            cursorRequest.result = null;
-            cursorRequest.readyState = 'done';
-          }
-        } else {
-          cursorRequest.result = null;
-          cursorRequest.readyState = 'done';
-        }
-
-        if (cursorRequest.onsuccess) {
-          try {
-            cursorRequest.onsuccess.call(cursorRequest, { target: cursorRequest });
-          } catch (e) {
-            console.error("Error in cursor.onsuccess (item found or exhausted):", e);
-          }
-        }
-        // If cursorRequest.result was set to a file, and user doesn't call .continue(),
-        // readyState remains 'pending'. This is by design of cursors.
-        // It becomes 'done' only when exhausted or errored.
-      };
-
-      idbOpenCursorRequest.onerror = (event) => {
-        idbCursorInstance = null;
-        cursorRequest._reject({ name: event.target.error.name, message: event.target.error.message });
-      };
-
-    } catch (e) {
-      idbCursorInstance = null;
-      setTimeout(() => {
-          cursorRequest._reject({ name: e.name || "EnumerateSetupError", message: e.message || "Failed to start enumeration." });
-      }, 0);
-    }
-    return cursorRequest;
-  }
-
-
-  enumerateEditable(path = "") {
-    // In this simulation, enumerateEditable is the same as enumerate.
-    // A more complex simulation might return EditableDOMFile-like objects.
-    return this.enumerate(path);
-  }
-
-  async _getSpaceEstimate() {
-    if (navigator.storage && navigator.storage.estimate) {
-      try {
-        return await navigator.storage.estimate();
-      } catch (err) {
-        console.warn("navigator.storage.estimate() failed:", err);
-      }
-    }
-    // Fallback mock values if estimate API is unavailable or fails
-    const fiveHundredMB = 500 * 1024 * 1024;
-    // Try to calculate usage from IndexedDB for this specific store
-    let currentUsage = 0;
-    try {
-        const store = this._getTransaction('readonly');
-        const req = store.getAll();
-        return new Promise((resolve) => {
-            req.onsuccess = () => {
-                currentUsage = req.result.reduce((sum, file) => sum + (file.blob.size || 0), 0);
-                resolve({ quota: fiveHundredMB, usage: currentUsage });
-            };
-            req.onerror = () => {
-                resolve({ quota: fiveHundredMB, usage: 0 }); // Fallback on error
-            };
-        });
-
-    } catch(e) {
-         // Fallback if transaction fails
-        return { quota: fiveHundredMB, usage: 0 };
-    }
-  }
-
-  freeSpace() {
-    const request = new SimulatedDOMRequest();
-    this._getSpaceEstimate().then(estimate => {
-      request._resolve(Math.max(0, estimate.quota - estimate.usage));
-    }).catch(err => {
-      // Fallback if promise rejected unexpectedly (should be handled by _getSpaceEstimate)
-      request._resolve(500 * 1024 * 1024); // Mock
-    });
-    return request;
-  }
-
-  // totalSpace() is part of general DeviceStorage API (e.g. Firefox OS)
-  totalSpace() {
-    const request = new SimulatedDOMRequest();
-    this._getSpaceEstimate().then(estimate => {
-      request._resolve(estimate.quota);
-    }).catch(err => {
-      request._resolve(500 * 1024 * 1024); // Mock
-    });
-    return request;
-  }
-
-  // usedSpace() is listed in the specific KaiOS doc page
-  usedSpace() {
-    const request = new SimulatedDOMRequest();
-    this._getSpaceEstimate().then(estimate => {
-      request._resolve(estimate.usage);
-    }).catch(err => {
-      request._resolve(0); // Mock, or could attempt to sum sizes in IDB
-    });
-    return request;
-  }
-
-  // available() method from DeviceStorage API
-  available() {
-      const request = new SimulatedDOMRequest();
-      // For simulation, we'll assume it's always available if DB is up.
-      // Real KaiOS would check mount state, etc.
-      if (this._db && typeof this._db.transaction === 'function') {
-          setTimeout(() => request._resolve("available"), 0);
-      } else {
-          setTimeout(() => request._resolve("unavailable"), 0);
-      }
-      return request;
-  }
-}
-
-// --- IndexedDB Setup and navigator.getDeviceStorage global simulator ---
-const KAIOS_SIM_DB_NAME = 'KaiOSDeviceStorageSimulatorDB';
-const KAIOS_SIM_DB_VERSION = 2; // Increment if object store structure changes (e.g. new index)
-const KAIOS_SIM_STORAGE_NAMES = ['pictures', 'videos', 'music', 'sdcard', 'apps'];
-
-let simDbInstance = null;
-let dbInitializationPromise = null;
-
-function initSimulatedDeviceStorageDB() {
-  if (!dbInitializationPromise) {
-    dbInitializationPromise = new Promise((resolve, reject) => {
-      if (simDbInstance) {
-        resolve(simDbInstance);
-        return;
-      }
-      if (!window.indexedDB) {
-          const errMsg = "IndexedDB is not supported in this browser. KaiOS Storage Simulator cannot run.";
-          console.error(errMsg);
-          reject(new Error(errMsg));
-          return;
-      }
-
-      const openRequest = indexedDB.open(KAIOS_SIM_DB_NAME, KAIOS_SIM_DB_VERSION);
-
-      openRequest.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        KAIOS_SIM_STORAGE_NAMES.forEach(name => {
-          const storeName = `${name}_store`;
-          if (!db.objectStoreNames.contains(storeName)) {
-            db.createObjectStore(storeName, { keyPath: 'fullPath' });
-          }
-          // Example: If you needed an index later for faster prefix searching for enumerate
-          // const store = event.target.transaction.objectStore(storeName);
-          // if (!store.indexNames.contains('fullPath')) {
-          //   store.createIndex('fullPath', 'fullPath', { unique: true });
-          // }
-        });
-      };
-
-      openRequest.onsuccess = (event) => {
-        simDbInstance = event.target.result;
-        simDbInstance.onclose = () => {
-            console.warn("Simulated DeviceStorage DB connection closed unexpectedly.");
-            simDbInstance = null;
-            dbInitializationPromise = null;
-        };
-        simDbInstance.onversionchange = () => {
-            console.warn("Simulated DeviceStorage DB version change detected. Closing old connection.");
-            if (simDbInstance) simDbInstance.close(); // Important to close old connection
-            simDbInstance = null;
-            dbInitializationPromise = null;
-        };
-        resolve(simDbInstance);
-      };
-
-      openRequest.onerror = (event) => {
-        console.error('Error opening simulated DB:', event.target.error);
-        dbInitializationPromise = null;
-        reject(event.target.error);
-      };
-
-      openRequest.onblocked = (event) => {
-        console.warn("Simulated DeviceStorage DB open request is blocked. Close other connections/tabs using this DB.", event);
-        reject(new Error("IndexedDB open request blocked."));
-      };
-    });
-  }
-  return dbInitializationPromise;
-}
-
-// Simulate navigator.getDeviceStorage and navigator.getDeviceStorages
-function setupKaiOSNavigatorSimulation() {
-  if (typeof navigator !== 'undefined') {
-    // navigator.getDeviceStorage (singular) - returns the first storage object or null
-    if (!navigator.getDeviceStorage) {
-      navigator.getDeviceStorage = function(storageName) {
-        if (!simDbInstance) {
-          console.error("Simulated DeviceStorage DB not initialized. Call and await initSimulatedDeviceStorageDB() first.");
-          return null; // KaiOS would likely return null if service unavailable
-        }
-        if (KAIOS_SIM_STORAGE_NAMES.includes(storageName)) {
-          return new SimulatedDeviceStorage(simDbInstance, storageName);
-        } else {
-          console.warn(`Simulated DeviceStorage: Unknown storage name '${storageName}' for getDeviceStorage.`);
-          return null;
-        }
-      };
-      console.log("Simulated navigator.getDeviceStorage (singular) is now available.");
-    } else {
-      console.warn("navigator.getDeviceStorage (singular) already exists. Simulator will not overwrite.");
-    }
-
-    // navigator.getDeviceStorages (plural) - returns an array of storage objects
-    if (!navigator.getDeviceStorages) {
-      navigator.getDeviceStorages = function(storageName) {
-        if (!simDbInstance) {
-          console.error("Simulated DeviceStorage DB not initialized. Call and await initSimulatedDeviceStorageDB() first.");
-          return [];
-        }
-        if (KAIOS_SIM_STORAGE_NAMES.includes(storageName)) {
-          return [new SimulatedDeviceStorage(simDbInstance, storageName)]; // Array with one item
-        } else {
-          console.warn(`Simulated DeviceStorage: Unknown storage name '${storageName}' for getDeviceStorages.`);
-          return [];
-        }
-      };
-      console.log("Simulated navigator.getDeviceStorages (plural) is now available.");
-    } else {
-      console.warn("navigator.getDeviceStorages (plural) already exists. Simulator will not overwrite.");
-    }
+cursor_example1.onsuccess = function () {
+  // The original doc has `if(cursor.result.name !== null)`
+  // A more robust check is `if (this.result)` or `if (!this.done)`
+  // The second example uses `!this.done`, which is generally better.
+  if (this.result) { // if a file object is set
+    var file = this.result;
+    console.log("File found (Ex1): " + file.name + " (type: " + file.type + ", size: " + file.size + ")");
+ 
+    // Once we found a file we check if there is other results
+    // Then we move to the next result, which call the cursor
+    // success with the next file as result.
+      this.continue();
+  } else if (this.done) {
+    console.log("Example 1: Enumeration complete. No more files.");
   } else {
-    console.error("`navigator` object not found. Cannot simulate KaiOS storage methods.");
+    // This case (this.result is null but this.done is false) shouldn't really happen with the mock's logic
+    // if onsuccess is only called after _advance().
+    console.log("Example 1: Enumeration yielded null result but not done, usually means empty or error.");
   }
 }
 
-// --- Example Usage: KaiOS API Style ---
-// This function demonstrates how you'd use the DeviceStorage API on KaiOS
-// (or with this simulator once initialized).
-async function runKaiOSDeviceStorageDemo() {
-  console.log("Starting KaiOS DeviceStorage API Demo...");
+cursor_example1.onerror = function () { 
+    console.warn("No file found (Ex1 Error): " + this.error); 
+}
 
-  // 0. Check storage availability (optional, but good practice)
-  const sdcardStorage = navigator.getDeviceStorage('sdcard'); // Using singular form
+console.log("\n---- Running second enumerate example (with 'since' parameter) ----");
+var pics_example2 = navigator.getDeviceStorage('pictures');
 
-  if (!sdcardStorage) {
-    console.error("Could not get 'sdcard' storage. Demo cannot proceed.");
-    return;
-  }
-  console.log("Successfully obtained 'sdcard' device storage object.");
+// Lets retrieve picture from the last week.
+var oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000);
+console.log("Searching for pictures since:", oneWeekAgo.toISOString());
 
-  // Listen for changes (optional)
-  sdcardStorage.onchange = function(event) {
-      console.log(`Storage change detected: Reason: ${event.reason}, Path: ${event.path}`);
-  };
+var param = {
+  since: oneWeekAgo
+};
 
-  const availableReq = sdcardStorage.available();
-  availableReq.onsuccess = function() {
-      console.log(`SD card status: ${this.result}`);
-      if (this.result !== "available") {
-          console.warn("SD card is not fully available. Some operations might fail.");
-      }
-      // Proceed with other operations regardless for demo purposes
-      addAndListFiles();
-  };
-  availableReq.onerror = function() {
-      console.error("Error checking SD card availability:", this.error.name);
-      addAndListFiles(); // Proceed anyway for demo
-  };
+var cursor_example2 = pics_example2.enumerate(param); // No path prefix, just options
 
-
-  function addAndListFiles() {
-    // 1. Add a file
-    const myContent = "Hello from simulated sdcard! Time: " + new Date().toLocaleTimeString();
-    const myBlob = new Blob([myContent], { type: 'text/plain' });
-    const filePath = 'documents/testFile.txt'; // KaiOS paths are typically like this
-
-    console.log(`\nAttempting to add file: ${filePath}`);
-    const addRequest = sdcardStorage.addNamed(myBlob, filePath);
-
-    addRequest.onsuccess = function() { // 'this' here is the addRequest object
-      console.log("AddNamed SUCCESS. File path returned by API:", this.result);
-      listFilesAndDirectories("documents/");
-    };
-    addRequest.onerror = function() {
-      console.error("AddNamed ERROR:", this.error.name, this.error.message);
-      // Even if add fails, try to list to see what's there
-      listFilesAndDirectories("documents/");
-    };
+cursor_example2.onsuccess = function () {
+  if (this.result) { // Check if a file object is present
+    var file = this.result;
+    console.log("Picture taken on (Ex2): " + file.lastModifiedDate.toISOString() + " - Name: " + file.name);
   }
 
-
-  function listFilesAndDirectories(basePathToList) {
-    console.log(`\nEnumerating files/folders in '${basePathToList}':`);
-    const cursor = sdcardStorage.enumerate(basePathToList);
-
-    cursor.onsuccess = function() { // 'this' here is the cursor object
-      if (this.result) {
-        const fileEntry = this.result; // KaiOS file object from enumerate (name is full path)
-        console.log(`  - Found: ${fileEntry.name} (Size: ${fileEntry.size}, Type: ${fileEntry.type}, Modified: ${new Date(fileEntry.lastModified).toLocaleString()})`);
-        // To continue to the next item:
-        this.continue();
-      } else {
-        console.log(`  (No more entries in '${basePathToList}')`);
-        // After listing, proceed to get the content of the file we attempted to add
-        const filePath = 'documents/testFile.txt';
-        getFileContent(filePath);
-      }
-    };
-    cursor.onerror = function() {
-      console.error("Enumerate ERROR:", this.error.name, this.error.message);
-      const filePath = 'documents/testFile.txt';
-      getFileContent(filePath); // Try next step even if enumeration fails
-    };
-  }
-
-  function getFileContent(path) {
-    console.log(`\nAttempting to get file: ${path}`);
-    const getRequest = sdcardStorage.get(path);
-    getRequest.onsuccess = function() { // 'this' is getRequest
-      if (this.result) {
-        const fileObject = this.result; // Standard File object (name is just filename)
-        console.log(`Get SUCCESS: File: ${fileObject.name}, Size: ${fileObject.size}, Type: ${fileObject.type}`);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          console.log("File content:", e.target.result);
-          deleteTheFile(path); // Proceed to delete
-        };
-        reader.onerror = (e) => {
-            console.error("FileReader error:", e.target.error.name);
-            deleteTheFile(path); // Proceed anyway
-        };
-        reader.readAsText(fileObject);
-      } else {
-        console.log(`Get: File '${path}' not found.`);
-        deleteTheFile(path); // Attempt delete anyway to test that path
-      }
-    };
-    getRequest.onerror = function() {
-      console.error("Get ERROR:", this.error.name, this.error.message);
-      deleteTheFile(path); // Proceed anyway
-    };
-  }
-
-  function deleteTheFile(path) {
-      console.log(`\nAttempting to delete file: ${path}`);
-      const deleteRequest = sdcardStorage.delete(path);
-      deleteRequest.onsuccess = function() { // 'this' is deleteRequest
-          console.log(`Delete SUCCESS. Result from API: ${this.result}`); // true if deleted, false if not found
-          checkStorageSpace();
-      };
-      deleteRequest.onerror = function() {
-          console.error("Delete ERROR:", this.error.name, this.error.message);
-          checkStorageSpace(); // Proceed anyway
-      };
-  }
-  
-  function checkStorageSpace() {
-      console.log("\nChecking storage space (simulated values):");
-      const freeSpaceReq = sdcardStorage.freeSpace();
-      freeSpaceReq.onsuccess = function() {
-          console.log(`  Free space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
-      };
-      freeSpaceReq.onerror = function() { console.error("  Error getting free space:", this.error.name); };
-
-      const usedSpaceReq = sdcardStorage.usedSpace(); // Using usedSpace as per KaiOS docs
-      usedSpaceReq.onsuccess = function() {
-          console.log(`  Used space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
-      };
-      usedSpaceReq.onerror = function() { console.error("  Error getting used space:", this.error.name); };
-      
-      const totalSpaceReq = sdcardStorage.totalSpace(); // totalSpace is also common in DeviceStorage API
-      totalSpaceReq.onsuccess = function() {
-          console.log(`  Total space: ~${(this.result / (1024*1024)).toFixed(2)} MB`);
-          console.log("\nDemo finished.");
-      };
-      totalSpaceReq.onerror = function() { 
-          console.error("  Error getting total space:", this.error.name);
-          console.log("\nDemo finished (with error on totalSpace).");
-      };
+  if (!this.done) {
+    this.continue();
+  } else {
+    console.log("Example 2: Enumeration complete (filtered by date).");
   }
 }
 
-// --- How to run this in a browser environment: ---
-// 1. Initialize the simulated database and navigator methods (do this once)
-async function main() {
-    try {
-        console.log("Initializing Simulated DeviceStorage DB...");
-        await initSimulatedDeviceStorageDB();
-        console.log("Simulated DB Initialized.");
-
-        // 2. Setup the navigator.getDeviceStorage and navigator.getDeviceStorages simulations
-        setupKaiOSNavigatorSimulation();
-
-        // 3. Now you can run your KaiOS-style code
-        await runKaiOSDeviceStorageDemo();
-
-    } catch (err) {
-        console.error("Main application FAILED:", err);
-    }
+cursor_example2.onerror = function () { 
+    console.warn("Error during enumeration (Ex2): " + this.error); 
 }
 
-// Uncomment to run the demo when this script loads in a browser:
-// main();
+
+console.log("\n---- Running third enumerate example (with path prefix) ----");
+var pics_example3 = navigator.getDeviceStorage('pictures');
+var cursor_example3 = pics_example3.enumerate("holidays/"); // Path prefix
+
+cursor_example3.onsuccess = function () {
+  if (this.result) {
+    var file = this.result;
+    console.log("File found in 'holidays/' (Ex3): " + file.name);
+  }
+
+  if (!this.done) {
+    this.continue();
+  } else {
+    console.log("Example 3: Enumeration complete (filtered by path 'holidays/').");
+  }
+}
+cursor_example3.onerror = function () { 
+    console.warn("Error during enumeration (Ex3): " + this.error); 
+}
+
+// Example of using 'get'
+console.log("\n---- Running 'get' example ----");
+var sdcard = navigator.getDeviceStorage('sdcard');
+var request = sdcard.get("my-file.txt");
+
+request.onsuccess = function () {
+  var file = this.result;
+  console.log("Get the file (from sdcard): " + file.name + " (type: " + file.type + ")");
+}
+
+request.onerror = function () {
+  console.warn("Unable to get the file: " + this.error);
+}
 		</script>
 	</div>
 </body>
