@@ -74,9 +74,7 @@ function handleKeydown(e) {
       MIDP.sendKeyPress(35);
       break;
     case "Call":
-      if (keyDownTime_Star == 0) {
-        keyDownTime_Star = Date.now();
-      }
+      MIDP.sendKeyPress(-7);
       break;
   }
 
@@ -153,12 +151,7 @@ function handleKeyup(e) {
       MIDP.sendKeyRelease(35);
       break;
     case "Call":
-      if (Date.now() - keyDownTime_Star > 1000) {
-        keyDownTime_Star = 0;
-        window.location.href = "/index.html";
-      } else {
            MIDP.sendKeyRelease(-7);
-      }
       break;
   }
 }
@@ -169,6 +162,7 @@ window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyup);
 window.addEventListener("back", (event) => {
   event.preventDefault();
+  MIDP.sendKeyPress(-7);
  MIDP.sendKeyRelease(-7);
 });
 
