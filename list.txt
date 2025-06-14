@@ -1,3 +1,5 @@
 jars/ftu.jar
 jars/Shrek-TheThird_s40v3a.jar
 jars/Cricket T20 World Championship.jar
+jars/The Amazing Spider Man.jar
+jars/King Kong The Official Game.jar
