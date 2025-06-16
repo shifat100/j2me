@@ -109,7 +109,38 @@
             text-align: center;
             border-radius: 4px;
         }
-        .modal-content p { margin: 15px 0; }
+        .modal-content p { margin: 10px 0; }
+        
+        /* --- NEW STYLES for Tip Modal --- */
+        .tip-modal-options {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+        #dont-show-tip-again {
+            margin-right: 8px;
+            accent-color: var(--primary-color);
+        }
+        .modal-buttons {
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 8px 25px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .modal-buttons button:focus {
+             outline: 2px solid var(--highlight-color);
+             outline-offset: 1px;
+        }
+        /* --- END NEW STYLES --- */
 
         .softkey-bar {
             position: fixed;
@@ -155,15 +186,24 @@
         </div>
     </div>
     
-    <!-- *** NEW: Tip Modal for CloudFone users *** -->
+    <!-- *** MODIFIED: Tip Modal with Close button and "Don't show again" checkbox *** -->
     <div id="tip-modal" class="modal">
         <div class="modal-content">
-            <p>Tip for CloudFone users:</p>
-            <p style="font-weight: bold;">Long press * to select jar file from direct phone storage from gameplay screen <br>
-<small color='red'>some phone may not work</small>.</p>
+            <p style="font-weight:bold; font-size: 1.1em;">Tip for CloudFone Users</p>
+            <p>Long press <strong>*</strong> during gameplay to open a .jar file from your phone's storage.</p>
+            <p><small style="color:var(--highlight-color);">Note: This feature may not work on all devices.</small></p>
+
+            <div class="tip-modal-options">
+                <input type="checkbox" id="dont-show-tip-again">
+                <label for="dont-show-tip-again">Don't show this again</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="close-tip-btn" onclick="closeTipModal()">Close</button>
+            </div>
         </div>
     </div>
-    <!-- *** END NEW *** -->
+    <!-- *** END MODIFIED *** -->
 
     <div class="softkey-bar">
         <span id="softkey-left"></span>
@@ -189,8 +229,8 @@
             document.getElementById('search-box').focus();
             updateSelection();
             
-            // *** NEW: Check for CloudFone and show tip ***
-            if (isCloudPhone()) {
+            // *** NEW: Check localStorage before showing the tip ***
+            if (isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true') {
                 showTipModal();
             }
         };
@@ -204,7 +244,6 @@
             }
         });
 
-        // *** NEW: CloudFone detection function ***
         function isCloudPhone() {
             const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
             return (
@@ -292,11 +331,10 @@
 
         // --- KAIOS KEYBOARD CONTROL ---
         function handleKeyDown(event) {
-            // *** NEW: Handle input for the tip modal first ***
             if (currentFocus === 'tip-modal') {
                 if (event.key === 'Enter' || event.key === 'Backspace') {
                     event.preventDefault();
-                    closeTipModal();
+                    closeTipModal(); // The single close function now handles everything
                 }
                 return;
             }
@@ -380,10 +418,9 @@
             const center = document.getElementById('softkey-center');
             const right = document.getElementById('softkey-right');
 
-            // *** NEW: Update softkeys for the tip modal ***
             if (currentFocus === 'tip-modal') {
                 left.textContent = '';
-                center.textContent = 'OK';
+                center.textContent = 'CLOSE'; // Softkey maps to Close button / Enter key
                 right.textContent = '';
                 return;
             }
@@ -413,21 +450,26 @@
             updateSelection();
         }
         
-        // *** NEW: Functions to show and close the tip modal ***
         function showTipModal() {
             currentFocus = 'tip-modal';
             document.getElementById('tip-modal').style.display = 'flex';
+            document.getElementById('close-tip-btn').focus(); // Focus the button for accessibility
             updateSoftkeys();
         }
 
+        // *** UPDATED: closeTipModal now handles localStorage ***
         function closeTipModal() {
+            const checkbox = document.getElementById('dont-show-tip-again');
+            if (checkbox.checked) {
+                // Save the user's preference to not see the tip again.
+                localStorage.setItem('hideCloudFoneTip', 'true');
+            }
             document.getElementById('tip-modal').style.display = 'none';
             // Restore focus to the default starting element
             currentFocus = 'search';
             updateSelection();
         }
         
-        // Unchanged ES5 MIDlet extraction function
         function extractMidletClassName_ES5(zipUrl, callback) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
