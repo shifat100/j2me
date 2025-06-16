@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -153,6 +154,15 @@
             <p id="modal-message">Extracting MIDlet...</p>
         </div>
     </div>
+    
+    <!-- *** NEW: Tip Modal for CloudFone users *** -->
+    <div id="tip-modal" class="modal">
+        <div class="modal-content">
+            <p>Tip for CloudFone users:</p>
+            <p style="font-weight: bold;">Long press * to select jar file from direct memory.</p>
+        </div>
+    </div>
+    <!-- *** END NEW *** -->
 
     <div class="softkey-bar">
         <span id="softkey-left"></span>
@@ -169,32 +179,37 @@
 
         // --- KAIOS KEYBOARD STATE ---
         var currentIndex = -1; // -1 for search box, 0+ for list items
-        var currentFocus = 'search'; // 'search', 'list', 'modal'
+        var currentFocus = 'search'; // 'search', 'list', 'modal', 'tip-modal'
 
         // --- CORE LOGIC ---
         window.onload = () => {
             fetchFileList();
             window.addEventListener('keydown', handleKeyDown);
             document.getElementById('search-box').focus();
-            updateSelection(); // Changed from updateSoftkeys() to ensure search box is highlighted on load
+            updateSelection();
+            
+            // *** NEW: Check for CloudFone and show tip ***
+            if (isCloudPhone()) {
+                showTipModal();
+            }
         };
 
-        // **FIX:** Add a pageshow listener to reset state when navigating back to the page
         window.addEventListener('pageshow', (event) => {
-            // The event.persisted property is true if the page is being loaded from the cache.
             if (event.persisted) {
-                // Hide any stale modals
                 document.getElementById('extraction-modal').style.display = 'none';
-
-                // Reset search bar
                 const searchBox = document.getElementById('search-box');
                 searchBox.value = '';
-
-                // Re-trigger the filter logic to show all files and reset the view
                 handleSearch();
             }
         });
 
+        // *** NEW: CloudFone detection function ***
+        function isCloudPhone() {
+            const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
+            return (
+              normalizedUserAgent.includes('cloud phone')
+            );
+        }
 
         function fetchFileList() {
             const xhr = new XMLHttpRequest();
@@ -203,15 +218,14 @@
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '');
                     filteredFiles = allFiles;
-                    renderPage(true); // Initial render should keep focus on search
+                    renderPage(true);
                 } else if (xhr.readyState === 4) {
                     document.getElementById('file-list').innerHTML = '<li>Error loading file list.</li>';
                 }
             };
             xhr.send();
         }
-
-        // **FIX:** Added 'keepFocusOnSearch' parameter to prevent stealing focus while typing.
+        
         function renderPage(keepFocusOnSearch = false) {
             const listElement = document.getElementById('file-list');
             listElement.innerHTML = '';
@@ -238,11 +252,9 @@
             renderPagination();
 
             if (!keepFocusOnSearch) {
-                // After changing pages, focus on the first item in the list
                 currentFocus = 'list';
                 currentIndex = 0;
             } else {
-                // After searching, keep focus on search, but reset list index
                 currentFocus = 'search';
                 currentIndex = -1;
             }
@@ -259,21 +271,18 @@
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.toLowerCase().includes(searchTerm));
             currentPage = 1;
-            // Re-render the page but signal to keep focus on the search box
             renderPage(true);
         }
 
         function handleFileClick(filePath) {
             const fullUrl = `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/${filePath}`;
-            showModal(`Extracting MIDlet from ${filePath}...`);
+            showExtractionModal(`Extracting MIDlet from ${filePath}...`);
 
             extractMidletClassName_ES5(filePath, (error, midletName) => {
                 if (error) {
-                    showModal(`Error: ${error.message}`, true);
+                    showExtractionModal(`Error: ${error.message}`, true);
                 } else {
-                    // **FIX:** Hide the modal cleanly before starting the redirect.
                     document.getElementById('extraction-modal').style.display = 'none';
-            
                     const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
                     window.location.href = redirectUrl;
                 }
@@ -282,9 +291,18 @@
 
         // --- KAIOS KEYBOARD CONTROL ---
         function handleKeyDown(event) {
+            // *** NEW: Handle input for the tip modal first ***
+            if (currentFocus === 'tip-modal') {
+                if (event.key === 'Enter' || event.key === 'Backspace') {
+                    event.preventDefault();
+                    closeTipModal();
+                }
+                return;
+            }
+
             if (currentFocus === 'modal') {
                 if (event.key === 'Enter' || event.key === 'Backspace') {
-                    closeModal();
+                    closeExtractionModal();
                 }
                 return;
             }
@@ -361,6 +379,14 @@
             const center = document.getElementById('softkey-center');
             const right = document.getElementById('softkey-right');
 
+            // *** NEW: Update softkeys for the tip modal ***
+            if (currentFocus === 'tip-modal') {
+                left.textContent = '';
+                center.textContent = 'OK';
+                right.textContent = '';
+                return;
+            }
+
             if (currentFocus === 'modal') {
                 left.textContent = '';
                 center.textContent = 'CLOSE';
@@ -373,20 +399,33 @@
         }
 
         // --- MODAL & EXTRACTION ---
-        function showModal(message, isError = false) {
+        function showExtractionModal(message, isError = false) {
             currentFocus = 'modal';
             document.getElementById('modal-message').textContent = message;
             document.getElementById('extraction-modal').style.display = 'flex';
             updateSoftkeys();
         }
 
-        function closeModal() {
-            // Restore focus to the list or search box depending on what was last active
+        function closeExtractionModal() {
             currentFocus = (currentIndex > -1) ? 'list' : 'search';
             document.getElementById('extraction-modal').style.display = 'none';
             updateSelection();
         }
+        
+        // *** NEW: Functions to show and close the tip modal ***
+        function showTipModal() {
+            currentFocus = 'tip-modal';
+            document.getElementById('tip-modal').style.display = 'flex';
+            updateSoftkeys();
+        }
 
+        function closeTipModal() {
+            document.getElementById('tip-modal').style.display = 'none';
+            // Restore focus to the default starting element
+            currentFocus = 'search';
+            updateSelection();
+        }
+        
         // Unchanged ES5 MIDlet extraction function
         function extractMidletClassName_ES5(zipUrl, callback) {
             const xhr = new XMLHttpRequest();
