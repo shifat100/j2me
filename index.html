@@ -111,7 +111,6 @@
         }
         .modal-content p { margin: 10px 0; }
         
-        /* --- NEW STYLES for Tip Modal --- */
         .tip-modal-options {
             margin-top: 15px;
             display: flex;
@@ -140,7 +139,6 @@
              outline: 2px solid var(--highlight-color);
              outline-offset: 1px;
         }
-        /* --- END NEW STYLES --- */
 
         .softkey-bar {
             position: fixed;
@@ -188,7 +186,8 @@
     
     <div id="tip-modal" class="modal">
         <div class="modal-content">
-            <p style="font-weight:bold; font-size: 1.1em;">Tip</p>
+             <!-- *** FIX: Restored title for clarity *** -->
+            <p style="font-weight:bold; font-size: 1.1em;">Tip for CloudFone Users</p>
             <p>Long press <strong>*</strong> during gameplay to open a .jar file from your phone's storage.</p>
             <p><small style="color:var(--highlight-color);">Note: This feature may not work on all devices.</small></p>
 
@@ -223,8 +222,9 @@
         const itemsPerPage = 10;
 
         // --- KAIOS KEYBOARD STATE ---
-        var currentIndex = 1; // -1 for search box, 0+ for list items
-        var currentFocus = 'tip-modal'; // 'search', 'list', 'modal', 'tip-modal'
+        var currentIndex = -1; // -1 for search box, 0+ for list items
+        // *** FIX: Initial focus state must be 'search' for the app to work correctly on launch. ***
+        var currentFocus = 'search'; // 'search', 'list', 'modal', 'tip-modal'
 
         // --- CORE LOGIC ---
         window.onload = () => {
@@ -233,7 +233,9 @@
             document.getElementById('search-box').focus();
             updateSelection();
             
-            if (!isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true'||gup('iscloudfone')==true) {
+            // *** FIX: Corrected logic to show the tip ON CloudFone devices, not on others. ***
+            const shouldShowTip = (isCloudPhone() || gup('iscloudfone') === 'true') && localStorage.getItem('hideCloudFoneTip') !== 'true';
+            if (shouldShowTip) {
                 showTipModal();
             }
         };
@@ -274,6 +276,10 @@
             if (filteredFiles.length === 0) {
                 listElement.innerHTML = '<li>No files found.</li>';
                 renderPagination();
+                // Ensure focus state is correct even with no results
+                currentFocus = 'search';
+                currentIndex = -1;
+                updateSelection();
                 return;
             }
 
@@ -292,12 +298,12 @@
 
             renderPagination();
 
-            if (!keepFocusOnSearch) {
-                currentFocus = 'list';
-                currentIndex = 0;
-            } else {
+            if (keepFocusOnSearch) {
                 currentFocus = 'search';
                 currentIndex = -1;
+            } else {
+                currentFocus = 'list';
+                currentIndex = 0;
             }
             updateSelection();
         }
@@ -331,11 +337,6 @@
         }
 
         // --- KAIOS KEYBOARD CONTROL (REFACTORED) ---
-
-        /**
-         * Main keydown dispatcher. It checks the current UI focus 
-         * and calls the appropriate handler function.
-         */
         function handleKeyDown(event) {
             switch (currentFocus) {
                 case 'tip-modal':
@@ -351,11 +352,7 @@
             }
         }
 
-        /**
-         * Handles key events for the main list and search box navigation.
-         */
         function handleListNavKeyDown(event) {
-            // Prevent default browser action for arrow keys
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
             }
@@ -365,13 +362,14 @@
                     if (currentFocus === 'search' && filteredFiles.length > 0) {
                         currentFocus = 'list';
                         currentIndex = 0;
+                        updateSelection();
                     } else if (currentFocus === 'list') {
                         const listLength = document.getElementById('file-list').children.length;
                         if (listLength > 0) {
                             currentIndex = (currentIndex + 1) % listLength;
+                            updateSelection();
                         }
                     }
-                    updateSelection();
                     break;
                 case 'ArrowUp':
                     if (currentFocus === 'list') {
@@ -379,8 +377,8 @@
                         if (currentIndex < 0) {
                              currentFocus = 'search';
                         }
+                        updateSelection();
                     }
-                    updateSelection();
                     break;
                 case 'ArrowRight':
                     const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
@@ -401,23 +399,23 @@
                         selectedItem?.click();
                     }
                     break;
+                // *** FIX: Make the "Exit" softkey functional. 'Backspace' is the right softkey on KaiOS. ***
+                case 'Backspace':
+                    if (currentFocus === 'search') {
+                        event.preventDefault();
+                        window.close(); // Standard way to close a KaiOS app
+                    }
+                    break;
             }
         }
 
-        /**
-         * Handles key events when the Tip Modal is open.
-         */
         function handleTipModalKeyDown(event) {
-            // On a feature phone, Enter/Backspace are common ways to confirm/close dialogs.
             if (event.key === 'Enter' || event.key === 'Backspace') {
                 event.preventDefault();
                 closeTipModal(); 
             }
         }
         
-        /**
-         * Handles key events when the simple Extraction Modal is open.
-         */
         function handleModalKeyDown(event) {
              if (event.key === 'Enter' || event.key === 'Backspace') {
                 event.preventDefault();
@@ -434,7 +432,7 @@
 
             if (currentFocus === 'search') {
                 searchBox.classList.add('selected');
-                searchBox.focus();
+                searchBox.focus(); // Ensure the actual browser focus is on the input
             } else if (currentFocus === 'list' && currentIndex > -1 && listItems[currentIndex]) {
                 searchBox.blur();
                 const selectedItem = listItems[currentIndex];
@@ -453,9 +451,13 @@
                 left.textContent = '';
                 center.textContent = 'CLOSE';
                 right.textContent = '';
-            } else {
+            } else if (currentFocus === 'search') {
                 left.textContent = '';
-                center.textContent = (currentFocus === 'list') ? 'SELECT' : '';
+                center.textContent = '';
+                right.textContent = 'Exit'; // "Exit" softkey is active at the top level
+            } else { // currentFocus is 'list'
+                left.textContent = '';
+                center.textContent = 'SELECT';
                 right.textContent = 'Exit';
             }
         }
@@ -487,6 +489,7 @@
                 localStorage.setItem('hideCloudFoneTip', 'true');
             }
             document.getElementById('tip-modal').style.display = 'none';
+            // Restore focus to the default starting element
             currentFocus = 'search';
             updateSelection();
         }
