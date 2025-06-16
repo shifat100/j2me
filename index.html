@@ -230,7 +230,7 @@
             updateSelection();
             
             // *** NEW: Check localStorage before showing the tip ***
-            if (isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true') {
+            if (isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true'||gup('iscloudfone')==true) {
                 showTipModal();
             }
         };
