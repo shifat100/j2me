@@ -212,6 +212,12 @@
     </div>
 
     <script>
+function gup(name) {
+  var regex = new RegExp('[?&]' + encodeURIComponent(name) + '=([^&#]*)');
+  var results = regex.exec(window.location.href);
+  return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
+}
+
         // --- GLOBAL STATE ---
         var allFiles = [];
         var filteredFiles = [];
