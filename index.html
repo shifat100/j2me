@@ -186,7 +186,6 @@
         </div>
     </div>
     
-    <!-- *** MODIFIED: Tip Modal with Close button and "Don't show again" checkbox *** -->
     <div id="tip-modal" class="modal">
         <div class="modal-content">
             <p style="font-weight:bold; font-size: 1.1em;">Tip for CloudFone Users</p>
@@ -203,7 +202,6 @@
             </div>
         </div>
     </div>
-    <!-- *** END MODIFIED *** -->
 
     <div class="softkey-bar">
         <span id="softkey-left"></span>
@@ -212,11 +210,11 @@
     </div>
 
     <script>
-function gup(name) {
-  var regex = new RegExp('[?&]' + encodeURIComponent(name) + '=([^&#]*)');
-  var results = regex.exec(window.location.href);
-  return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
-}
+        function gup(name) {
+          var regex = new RegExp('[?&]' + encodeURIComponent(name) + '=([^&#]*)');
+          var results = regex.exec(window.location.href);
+          return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
+        }
 
         // --- GLOBAL STATE ---
         var allFiles = [];
@@ -231,12 +229,11 @@ function gup(name) {
         // --- CORE LOGIC ---
         window.onload = () => {
             fetchFileList();
-            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keydown', handleKeyDown); // Main event listener
             document.getElementById('search-box').focus();
             updateSelection();
             
-            // *** NEW: Check localStorage before showing the tip ***
-            if (isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true'||gup('iscloudfone')==true) {
+            if (!isCloudPhone() && localStorage.getItem('hideCloudFoneTip') !== 'true'||gup('iscloudfone')==true) {
                 showTipModal();
             }
         };
@@ -252,9 +249,7 @@ function gup(name) {
 
         function isCloudPhone() {
             const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
-            return (
-              normalizedUserAgent.includes('cloud phone')
-            );
+            return normalizedUserAgent.includes('cloud phone');
         }
 
         function fetchFileList() {
@@ -335,23 +330,32 @@ function gup(name) {
             });
         }
 
-        // --- KAIOS KEYBOARD CONTROL ---
+        // --- KAIOS KEYBOARD CONTROL (REFACTORED) ---
+
+        /**
+         * Main keydown dispatcher. It checks the current UI focus 
+         * and calls the appropriate handler function.
+         */
         function handleKeyDown(event) {
-            if (currentFocus === 'tip-modal') {
-                if (event.key === 'Enter' || event.key === 'Backspace') {
-                    event.preventDefault();
-                    closeTipModal(); // The single close function now handles everything
-                }
-                return;
+            switch (currentFocus) {
+                case 'tip-modal':
+                    handleTipModalKeyDown(event);
+                    break;
+                case 'modal':
+                    handleModalKeyDown(event);
+                    break;
+                case 'search':
+                case 'list':
+                    handleListNavKeyDown(event);
+                    break;
             }
+        }
 
-            if (currentFocus === 'modal') {
-                if (event.key === 'Enter' || event.key === 'Backspace') {
-                    closeExtractionModal();
-                }
-                return;
-            }
-
+        /**
+         * Handles key events for the main list and search box navigation.
+         */
+        function handleListNavKeyDown(event) {
+            // Prevent default browser action for arrow keys
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
             }
@@ -400,6 +404,27 @@ function gup(name) {
             }
         }
 
+        /**
+         * Handles key events when the Tip Modal is open.
+         */
+        function handleTipModalKeyDown(event) {
+            // On a feature phone, Enter/Backspace are common ways to confirm/close dialogs.
+            if (event.key === 'Enter' || event.key === 'Backspace') {
+                event.preventDefault();
+                closeTipModal(); 
+            }
+        }
+        
+        /**
+         * Handles key events when the simple Extraction Modal is open.
+         */
+        function handleModalKeyDown(event) {
+             if (event.key === 'Enter' || event.key === 'Backspace') {
+                event.preventDefault();
+                closeExtractionModal();
+            }
+        }
+
         function updateSelection() {
             const searchBox = document.getElementById('search-box');
             const listItems = document.getElementById('file-list').children;
@@ -424,14 +449,7 @@ function gup(name) {
             const center = document.getElementById('softkey-center');
             const right = document.getElementById('softkey-right');
 
-            if (currentFocus === 'tip-modal') {
-                left.textContent = '';
-                center.textContent = 'CLOSE'; // Softkey maps to Close button / Enter key
-                right.textContent = '';
-                return;
-            }
-
-            if (currentFocus === 'modal') {
+            if (currentFocus === 'tip-modal' || currentFocus === 'modal') {
                 left.textContent = '';
                 center.textContent = 'CLOSE';
                 right.textContent = '';
@@ -459,19 +477,16 @@ function gup(name) {
         function showTipModal() {
             currentFocus = 'tip-modal';
             document.getElementById('tip-modal').style.display = 'flex';
-            document.getElementById('close-tip-btn').focus(); // Focus the button for accessibility
+            document.getElementById('close-tip-btn').focus();
             updateSoftkeys();
         }
 
-        // *** UPDATED: closeTipModal now handles localStorage ***
         function closeTipModal() {
             const checkbox = document.getElementById('dont-show-tip-again');
             if (checkbox.checked) {
-                // Save the user's preference to not see the tip again.
                 localStorage.setItem('hideCloudFoneTip', 'true');
             }
             document.getElementById('tip-modal').style.display = 'none';
-            // Restore focus to the default starting element
             currentFocus = 'search';
             updateSelection();
         }
