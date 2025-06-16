@@ -30,7 +30,8 @@
 					<div>c</div>
 				</div>
 			</div>
-			<iframe id="appFrame" src="./index.html?cloudfone=true" scrolling="no"></iframe>
+			<!-- Iframe now points to a simpler path -->
+			<iframe id="appFrame" src="./index.html" scrolling="no"></iframe>
 			<div class="brand"></div>
 			<table class="keypad">
 				<tr>
@@ -57,7 +58,7 @@
 				</tr>
 				<tr>
 					<td>
-						<div class="button largeicon call" data-key="Call">—</div> <!-- Assuming Call key might be useful -->
+						<div class="button largeicon call" data-key="Call">—</div>
 					</td>
 					<td>
 						<div class="button sk" data-key="ArrowDown">↓</div>
@@ -101,7 +102,7 @@
 				</tr>
 				<tr>
 					<td>
-						<div class="button char specialchars largeicon" data-key="*">∗</div> <!-- Added char class -->
+						<div class="button char specialchars largeicon" data-key="*">∗</div>
 					</td>
 					<td>
 						<div class="button char" data-key="0">0 _</div>
@@ -114,23 +115,7 @@
 		</div>
 		<div class="panel controlpanel">
 			<h3>Configuration</h3>
-			<div id="online-toggle-container">
-				<input type="checkbox" id="online-checkbox" name="online" checked autocomplete="off" />
-				<label for="online-checkbox">Online/offline</label>
-			</div>
-			<div id="experiment-trending-container">
-				<input type="checkbox" id="experiment-trending-checkbox" name="experiment-trending" autocomplete="off" />
-				<label for="experiment-trending-checkbox">Experiment Group (Trending articles)</label>
-			</div>
-			
-			<!-- *** NEW: Custom User Agent Controls *** -->
-			<div id="user-agent-container" style="display:none">
-				<label for="user-agent-input">Custom User Agent:</label>
-				<input type="text" id="user-agent-input" placeholder="Enter custom user agent...">
-				<button id="user-agent-apply-btn">Apply & Reload</button>
-			</div>
-			<!-- *** END NEW *** -->
-
+			<!-- All configuration toggles have been removed -->
 		</div>
 		<style type="text/css">
 			.container {
@@ -184,7 +169,7 @@
 				left: 10px;
 				width: 240px;
 				height: 290px;
-				cursor: not-allowed;
+				pointer-events: none; /* Let clicks pass through to the iframe */
 			}
 
 			.keyselector {
@@ -257,34 +242,8 @@
 			.button span {
 				font-size: 8px;
 			}
-			
-			/* *** NEW: Styling for Custom User Agent Controls *** */
-			#user-agent-container {
-				margin-top: 15px;
-				padding-top: 10px;
-				border-top: 1px solid #ccc;
-			}
-			#user-agent-container label {
-				display: block;
-				margin-bottom: 5px;
-			}
-			#user-agent-input {
-				width: 100%;
-				padding: 5px;
-				box-sizing: border-box;
-				margin-bottom: 5px;
-			}
-			#user-agent-apply-btn {
-				width: 100%;
-				padding: 8px;
-				cursor: pointer;
-			}
-			/* *** END NEW *** */
 		</style>
 		<script type="text/javascript">
-			// *** NEW: Global variable for custom user agent ***
-			let customUserAgent = 'Mozilla/5.0 (Cloud Phone 2.3; Snexian GURU 4G; ASR) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.6613.170 Mobile Safari/537.36 Puffin/128.4.5.68109FP';
-
 			const keysMap = {
 				'1': ['.', ',', '?', '!', '1', ';', ':', '/', '@'],
 				'2': ['a', 'b', 'c', '2'],
@@ -511,122 +470,14 @@
 			}
 			updateClock()
 			setInterval(updateClock, 60 * 1000);
-
-			// Online/offline toggle
-			const onlineCheckbox = document.querySelector('#online-checkbox');
-			onlineCheckbox.addEventListener('change', function (e) {
-				const isOnline = e.target.checked;
-				Object.defineProperty(appFrame.contentWindow.navigator, "onLine", {
-					enumerable: true,
-					configurable: true,
-					get: function () {
-						return isOnline;
-					}
-				});
-				appFrame.contentWindow.dispatchEvent(new Event(isOnline ? 'online' : 'offline'));
-			});
-            onlineCheckbox.dispatchEvent(new Event('change'));
-
-			// Experiment Group for Trending Articles toggle
-			const experimentCheckbox = document.querySelector('#experiment-trending-checkbox');
-			experimentCheckbox.addEventListener('change', function (e) {
-				const isExperimentEnabled = e.target.checked;
-				if (isExperimentEnabled) {
-					localStorage.setItem('2021-KaiOS-app-engagement-config', `{"timestamp":${Date.now()},"startDate":"20210101","endDate":"20211231","countries":["NG"],"languages":["en"]}`);
-					localStorage.setItem('2021-KaiOS-app-homepage-content-suggestions', 'trending-articles');
-					localStorage.setItem('user-country', 'NG');
-				} else {
-					localStorage.setItem('2021-KaiOS-app-homepage-content-suggestions', 'control');
-				}
-                appFrame.src = './';
-			});
-
-			// *** NEW: Function to apply the custom user agent ***
-			function applyCustomUserAgent() {
-				// Ensure the iframe's navigator object exists
-				if (appFrame && appFrame.contentWindow && appFrame.contentWindow.navigator) {
-					// Only apply if a customUserAgent is set
-					if (customUserAgent) {
-						Object.defineProperty(appFrame.contentWindow.navigator, 'userAgent', {
-							get: function () {
-								return customUserAgent;
-							},
-							enumerable: true,
-							configurable: true // Important to allow re-defining
-						});
-						console.log('Applied custom User Agent to iframe:', customUserAgent);
-					}
-				}
-			}
-
-			// *** NEW: Event listener for the Apply button ***
-			const userAgentInput = document.querySelector('#user-agent-input');
-			const userAgentApplyBtn = document.querySelector('#user-agent-apply-btn');
-			userAgentApplyBtn.addEventListener('click', function() {
-				const newUA = userAgentInput.value.trim();
-				// Set to the new value, or null if the input is empty (to revert to default)
-				customUserAgent = newUA ? newUA : null;
-				// Reload the iframe to ensure the UA is applied from the very start of page load
-				console.log('Reloading iframe with new User Agent configuration...');
-				appFrame.src = './index.html?cloudfone=true';
-			});
-
-
+            
             appFrame.addEventListener('load', function() {
+                // Polyfill for navigator.sendBeacon if it's not available in the iframe's context
                 if (appFrame.contentWindow && appFrame.contentWindow.navigator && !appFrame.contentWindow.navigator.sendBeacon) {
                     appFrame.contentWindow.navigator.sendBeacon = function () { /* no-op */ };
                 }
-                // Set initial online state after iframe loads
-                onlineCheckbox.dispatchEvent(new Event('change'));
-
-				// *** NEW: Apply the custom user agent every time the iframe loads ***
-				applyCustomUserAgent();
             });
 
-			// -------------------- DUMMY IMPLEMENTATION START --------------------
-			// (The lengthy dummy DeviceStorage mock is unchanged and remains below)
-			// ...
-			const DUMMY_STORAGE_DATA = {
-				pictures: [
-					{ name: "holidays/beach.jpg", lastModifiedDate: new Date("2023-01-15T10:00:00Z"), type: "image/jpeg", size: 1024*500 },
-					{ name: "pets/cat.png", lastModifiedDate: new Date("2023-03-22T15:30:00Z"), type: "image/png", size: 1024*200 },
-					{ name: "food/sushi.gif", lastModifiedDate: new Date("2024-05-01T09:15:00Z"), type: "image/gif", size: 1024*800 },
-					{ name: "holidays/mountains.jpg", lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), type: "image/jpeg", size: 1024*600 },
-					{ name: "screenshots/error_log.png", lastModifiedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: "image/png", size: 1024*50 }
-				],
-				music: [ { name: "song1.mp3", lastModifiedDate: new Date(), type: "audio/mpeg", size: 1024*3000 }, ],
-				sdcard: [ { name: "my-file.txt", lastModifiedDate: new Date(), type: "text/plain", size: 20 } ]
-			};
-			if (typeof navigator === 'undefined') { global.navigator = {}; }
-			function MockDeviceStorage(storageName) {
-				this.storageName = storageName;
-				this.data = DUMMY_STORAGE_DATA[storageName] || [];
-				this.enumerate = function(pathPrefixOrOptions, optionsOnly) {
-					let pathPrefix = null; let options = {};
-					if (typeof pathPrefixOrOptions === 'string') { pathPrefix = pathPrefixOrOptions; if (typeof optionsOnly === 'object' && optionsOnly !== null) { options = optionsOnly; }
-					} else if (typeof pathPrefixOrOptions === 'object' && pathPrefixOrOptions !== null) { options = pathPrefixOrOptions; }
-					return new MockDOMCursor(this.data, pathPrefix, options.since);
-				};
-				this.get = function(fileName) {
-					const request = new MockDOMRequest();
-					setTimeout(() => {
-						const file = this.data.find(f => f.name === fileName);
-						if (file) { request.result = file; if (request.onsuccess) request.onsuccess();
-						} else { request.error = new Error("File not found"); if (request.onerror) request.onerror(); }
-					}, 50);
-					return request;
-				};
-			}
-			function MockDOMCursor(allFiles, pathPrefix, sinceDate) {
-				this.files = allFiles.filter(file => { let match = true; if (pathPrefix && !file.name.startsWith(pathPrefix)) { match = false; } if (sinceDate && file.lastModifiedDate < sinceDate) { match = false; } return match; });
-				this.currentIndex = -1; this.result = null; this.done = false; this.onsuccess = null; this.onerror = null;
-				this._advance = function() { this.currentIndex++; if (this.currentIndex < this.files.length) { this.result = this.files[this.currentIndex]; this.done = false; } else { this.result = null; this.done = true; } };
-				this.continue = function() { if (this.done) { if (typeof this.onsuccess === 'function') { this.result = null;  this.done = true; setTimeout(() => this.onsuccess(), 0); } return; } this._advance(); if (typeof this.onsuccess === 'function') { setTimeout(() => this.onsuccess(), 0); } };
-				setTimeout(() => { this._advance(); if (typeof this.onsuccess === 'function') { this.onsuccess(); } }, 0);
-			}
-			function MockDOMRequest() { this.result = null; this.error = null; this.onsuccess = null; this.onerror = null; }
-			navigator.getDeviceStorage = function(storageName) { if (DUMMY_STORAGE_DATA[storageName]) { return new MockDeviceStorage(storageName); } return new MockDeviceStorage("__empty__"); };
-			navigator.getDeviceStorages = function(storageName) { if (DUMMY_STORAGE_DATA[storageName]) { return [new MockDeviceStorage(storageName)]; } return [new MockDeviceStorage("__empty__")]; };
 		</script>
 	</div>
 </body>
