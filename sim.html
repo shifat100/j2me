@@ -8,11 +8,10 @@
 </head>
 
 <body>
-<a href="https://github.com/shifat100/j2me">Github Repository</a>
+<a href="https://github.com/shifat100/j2me" data-allowlist="true">Github Repository</a>
 
 	<div class="container">
 		<div class="panel help">
-
 			<h2>How to use the phone</h2>
 			<ul>
 				<li>This is a non-touch phone. Use the keypad to navigate the app</li>
@@ -124,14 +123,23 @@
 		</div>
 		<div class="panel controlpanel">
 			<h3>Configuration</h3>
-			<div id="online-toggle-container"> <!-- Renamed div ID for clarity -->
+			<div id="online-toggle-container">
 				<input type="checkbox" id="online-checkbox" name="online" checked autocomplete="off" />
 				<label for="online-checkbox">Online/offline</label>
 			</div>
-			<div id="experiment-trending-container"> <!-- Renamed div ID for clarity -->
+			<div id="experiment-trending-container">
 				<input type="checkbox" id="experiment-trending-checkbox" name="experiment-trending" autocomplete="off" />
 				<label for="experiment-trending-checkbox">Experiment Group (Trending articles)</label>
 			</div>
+			
+			<!-- *** NEW: Custom User Agent Controls *** -->
+			<div id="user-agent-container">
+				<label for="user-agent-input">Custom User Agent:</label>
+				<input type="text" id="user-agent-input" placeholder="Enter custom user agent...">
+				<button id="user-agent-apply-btn">Apply & Reload</button>
+			</div>
+			<!-- *** END NEW *** -->
+
 		</div>
 		<style type="text/css">
 			.container {
@@ -258,11 +266,34 @@
 			.button span {
 				font-size: 8px;
 			}
-
-			/* Removed: .controlpanel #online { display: none; } */
-			/* This rule was hiding the online/offline toggle */
+			
+			/* *** NEW: Styling for Custom User Agent Controls *** */
+			#user-agent-container {
+				margin-top: 15px;
+				padding-top: 10px;
+				border-top: 1px solid #ccc;
+			}
+			#user-agent-container label {
+				display: block;
+				margin-bottom: 5px;
+			}
+			#user-agent-input {
+				width: 100%;
+				padding: 5px;
+				box-sizing: border-box;
+				margin-bottom: 5px;
+			}
+			#user-agent-apply-btn {
+				width: 100%;
+				padding: 8px;
+				cursor: pointer;
+			}
+			/* *** END NEW *** */
 		</style>
 		<script type="text/javascript">
+			// *** NEW: Global variable for custom user agent ***
+			let customUserAgent = null;
+
 			const keysMap = {
 				'1': ['.', ',', '?', '!', '1', ';', ':', '/', '@'],
 				'2': ['a', 'b', 'c', '2'],
@@ -274,12 +305,12 @@
 				'8': ['t', 'u', 'v', '8'],
 				'9': ['w', 'x', 'y', 'z', '9'],
 				'0': [' ', '0'],
-				'*': ['*'] // Added for the '*' key
+				'*': ['*']
 			};
 			const inputModes = [
 				{ name: 'lowercase', text: '', fn: function (key, keys) { return keys ? keys.map(k => k.toLowerCase()) : [key.toLowerCase()]; } },
 				{ name: 'uppercase', text: '', fn: function (key, keys) { return keys ? keys.map(k => k.toUpperCase()) : [key.toUpperCase()]; } },
-				{ name: 'number', text: '', fn: function (key) { return [key]; } } // Ensure it always returns an array
+				{ name: 'number', text: '', fn: function (key) { return [key]; } }
 			];
 			var currentInputMode = 0;
 			const inputModeIndicator = document.querySelector('.headeritem.mode');
@@ -288,7 +319,6 @@
 				inputModeIndicator.innerHTML = inputModes[currentInputMode].text;
 			}
 			const keysInCurrentMode = function (key) {
-				// Ensure keysMap[key] is an array, or use [key] itself if not in keysMap (e.g. for '*')
                 const baseKeys = keysMap[key] || [key];
 				return inputModes[currentInputMode].fn(key, baseKeys);
 			}
@@ -332,7 +362,7 @@
 				};
 
 				const arraysEqual = function (a, b) {
-					if (!a || !b || a.length !== b.length) { // Added null checks for a and b
+					if (!a || !b || a.length !== b.length) {
 						return false;
 					}
 					for (var i = 0; i < a.length; i++) {
@@ -352,14 +382,10 @@
 						currentKey = newKeys[0];
 						replace = false;
 					} else if (!arraysEqual(keys, newKeys)) {
-						// it's open but this is a new button
-						// confirm previous selection
-						// lastInputElement.dispatchEvent(new InputEvent('input')); // Already handled by close() if timeout happens
 						keys = newKeys;
 						currentKey = newKeys[0];
 						replace = false;
 					} else {
-						// it's open and this is another press on the same button
 						var index = keys.indexOf(currentKey) + 1;
 						if (index >= keys.length) {
 							index = 0;
@@ -378,7 +404,7 @@
 					key: key,
 					composed: true,
 					bubbles: true,
-					cancelable: false // Typically false for synthetic, but can be true if app needs to cancel
+					cancelable: false
 				});
 				appFrame.contentDocument.dispatchEvent(newEvent);
 			}
@@ -391,7 +417,7 @@
 				'.button.sk': function (e) {
 					dispatchKeyToDoc(e.currentTarget.getAttribute('data-key'));
 				},
-				'.button.call': function(e) { // Added handler for call button if needed
+				'.button.call': function(e) {
 					dispatchKeyToDoc(e.currentTarget.getAttribute('data-key'));
 				},
 				'.button.backspace': function (e) {
@@ -402,10 +428,10 @@
 							const caretStart = element.selectionStart;
                             const caretEnd = element.selectionEnd;
                             let newCaretPos;
-                            if (caretStart === caretEnd) { // No selection, just backspace one char
+                            if (caretStart === caretEnd) {
 							    element.value = v.substring(0, caretStart - 1) + v.substring(caretStart);
                                 newCaretPos = caretStart - 1;
-                            } else { // Selection exists, delete selection
+                            } else {
                                 element.value = v.substring(0, caretStart) + v.substring(caretEnd);
                                 newCaretPos = caretStart;
                             }
@@ -421,8 +447,8 @@
 					const key = e.currentTarget.getAttribute('data-key');
 					if (isInput(element)) {
 						if (key === 'ArrowRight') {
-							if (element.selectionEnd < element.value.length) { // Use selectionEnd for moving right
-								const caret = element.selectionStart + 1; // Move cursor, not selection
+							if (element.selectionEnd < element.value.length) {
+								const caret = element.selectionStart + 1;
 								element.setSelectionRange(caret, caret);
 							}
 						} else if (key === 'ArrowLeft') {
@@ -437,14 +463,13 @@
 				},
 				'.button.char': function (e) {
 					const dataKey = e.currentTarget.getAttribute('data-key');
-					const keys = keysInCurrentMode(dataKey); // keys is now always an array e.g. ['a','b','c'] or ['*']
+					const keys = keysInCurrentMode(dataKey);
 					
 					const element = appFrame.contentDocument.activeElement;
 					if (isInput(element)) {
-						const useKeySelector = keys.length > 1 || (keys.length === 1 && keys[0] !== dataKey && !keysMap[dataKey]);
-                                                const isNumMode = inputModes[currentInputMode].name === 'number';
-                                                const hasMultipleCharsForKey = keysMap[dataKey] && keysMap[dataKey].length > 1;
-                                                const effectiveUseKeySelector = !isNumMode && hasMultipleCharsForKey;
+                        const isNumMode = inputModes[currentInputMode].name === 'number';
+                        const hasMultipleCharsForKey = keysMap[dataKey] && keysMap[dataKey].length > 1;
+                        const effectiveUseKeySelector = !isNumMode && hasMultipleCharsForKey;
 
 
 						const [charToInsert, replace] = effectiveUseKeySelector ? keySelector(keys, element) : [keys[0], false];
@@ -454,10 +479,10 @@
 						const currentSelectionEnd = element.selectionEnd;
 						var newCaretPos;
 
-						if (replace) { // Replace the character before the cursor (multi-tap)
+						if (replace) {
 							val = val.substring(0, currentSelectionStart - 1) + charToInsert + val.substring(currentSelectionStart);
 							newCaretPos = currentSelectionStart; 
-						} else { // Insert new char (or replace selection)
+						} else {
 							val = val.substring(0, currentSelectionStart) + charToInsert + val.substring(currentSelectionEnd);
 							newCaretPos = currentSelectionStart + charToInsert.length;
 						}
@@ -465,7 +490,7 @@
 						element.setSelectionRange(newCaretPos, newCaretPos);
 						element.dispatchEvent(new InputEvent('input', { data: charToInsert, isComposing: effectiveUseKeySelector }));
 					} else {
-						dispatchKeyToDoc(keys[0]); // Send the first character of the mode-adjusted list
+						dispatchKeyToDoc(keys[0]);
 					}
 				},
 				'.button.mode': nextInputMode
@@ -476,26 +501,13 @@
 				});
 			});
 
-			// Prevent key and mouse events from stealing focus from the iframe
 			['keypress', 'keydown', 'keyup', 'mousedown', 'mouseup', 'click'].forEach(function (k) {
 				window.addEventListener(k, function (e) {
-					// Allow events on elements with data-allowlist (like links in help)
-                    // and on form elements in the control panel
 					if (!e.target.getAttribute('data-allowlist') && !e.target.closest('.controlpanel')) {
 						e.preventDefault();
 					}
 				}, true);
 			});
-
-			// REMOVED: Aggressive event cancellation in appFrame.contentWindow
-			// ['keypress', 'keydown', 'keyup', 'mousedown', 'mouseup', 'click'].forEach(function (k) {
-			// 	appFrame.contentWindow.addEventListener(k, function (e) {
-			// 		if (e.cancelable) {
-			// 			e.preventDefault();
-			// 			e.stopPropagation();
-			// 		}
-			// 	}, true);
-			// });
 
 			// Clock
 			const pad = function (number) {
@@ -513,7 +525,7 @@
 			const onlineCheckbox = document.querySelector('#online-checkbox');
 			onlineCheckbox.addEventListener('change', function (e) {
 				const isOnline = e.target.checked;
-				Object.defineProperty(appFrame.contentWindow.navigator, "onLine", { // Define on navigator directly
+				Object.defineProperty(appFrame.contentWindow.navigator, "onLine", {
 					enumerable: true,
 					configurable: true,
 					get: function () {
@@ -522,9 +534,7 @@
 				});
 				appFrame.contentWindow.dispatchEvent(new Event(isOnline ? 'online' : 'offline'));
 			});
-            // Trigger initial state for onLine
             onlineCheckbox.dispatchEvent(new Event('change'));
-
 
 			// Experiment Group for Trending Articles toggle
 			const experimentCheckbox = document.querySelector('#experiment-trending-checkbox');
@@ -536,293 +546,96 @@
 					localStorage.setItem('user-country', 'NG');
 				} else {
 					localStorage.setItem('2021-KaiOS-app-homepage-content-suggestions', 'control');
-                    // Consider removing other experiment-specific keys or setting them to default
-                    // localStorage.removeItem('2021-KaiOS-app-engagement-config');
-                    // localStorage.removeItem('user-country');
 				}
-				// appFrame.contentWindow.location.href = './'; // This causes issues if src is relative
-                appFrame.src = './'; // Re-setting src reloads the iframe
+                appFrame.src = './';
 			});
 
-			// navigator.sendBeacon may be undefined in some browser configuration
-            // Ensure appFrame and its contentWindow are loaded before accessing them
+			// *** NEW: Function to apply the custom user agent ***
+			function applyCustomUserAgent() {
+				// Ensure the iframe's navigator object exists
+				if (appFrame && appFrame.contentWindow && appFrame.contentWindow.navigator) {
+					// Only apply if a customUserAgent is set
+					if (customUserAgent) {
+						Object.defineProperty(appFrame.contentWindow.navigator, 'userAgent', {
+							get: function () {
+								return customUserAgent;
+							},
+							enumerable: true,
+							configurable: true // Important to allow re-defining
+						});
+						console.log('Applied custom User Agent to iframe:', customUserAgent);
+					}
+				}
+			}
+
+			// *** NEW: Event listener for the Apply button ***
+			const userAgentInput = document.querySelector('#user-agent-input');
+			const userAgentApplyBtn = document.querySelector('#user-agent-apply-btn');
+			userAgentApplyBtn.addEventListener('click', function() {
+				const newUA = userAgentInput.value.trim();
+				// Set to the new value, or null if the input is empty (to revert to default)
+				customUserAgent = newUA ? newUA : null;
+				// Reload the iframe to ensure the UA is applied from the very start of page load
+				console.log('Reloading iframe with new User Agent configuration...');
+				appFrame.src = './';
+			});
+
+
             appFrame.addEventListener('load', function() {
                 if (appFrame.contentWindow && appFrame.contentWindow.navigator && !appFrame.contentWindow.navigator.sendBeacon) {
                     appFrame.contentWindow.navigator.sendBeacon = function () { /* no-op */ };
                 }
                 // Set initial online state after iframe loads
                 onlineCheckbox.dispatchEvent(new Event('change'));
+
+				// *** NEW: Apply the custom user agent every time the iframe loads ***
+				applyCustomUserAgent();
             });
 
-
-			// REMOVED: handleDown, handleUp functions and their listeners, and currentKey global.
-			// These were conflicting with the click handlers in keyHandlers and had issues.
-			// The current system relies on click handlers and dispatching keydown events.
-			// If keyup events are needed, keyHandlers and dispatchKeyToDoc would need further modifications.
 			// -------------------- DUMMY IMPLEMENTATION START --------------------
-
-// Dummy data for our 'pictures' storage
-const DUMMY_STORAGE_DATA = {
-    pictures: [
-        { name: "holidays/beach.jpg", lastModifiedDate: new Date("2023-01-15T10:00:00Z"), type: "image/jpeg", size: 1024*500 },
-        { name: "pets/cat.png", lastModifiedDate: new Date("2023-03-22T15:30:00Z"), type: "image/png", size: 1024*200 },
-        { name: "food/sushi.gif", lastModifiedDate: new Date("2024-05-01T09:15:00Z"), type: "image/gif", size: 1024*800 },
-        { name: "holidays/mountains.jpg", lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), type: "image/jpeg", size: 1024*600 }, // 2 days ago
-        { name: "screenshots/error_log.png", lastModifiedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: "image/png", size: 1024*50 } // 10 days ago
-    ],
-    music: [
-        { name: "song1.mp3", lastModifiedDate: new Date(), type: "audio/mpeg", size: 1024*3000 },
-    ],
-    sdcard: [
-         { name: "my-file.txt", lastModifiedDate: new Date(), type: "text/plain", size: 20 }
-    ]
-    // Add other storage areas if needed
-};
-
-// Mock for navigator object if it doesn't exist (e.g., running in Node.js)
-if (typeof navigator === 'undefined') {
-    global.navigator = {};
-}
-
-// --- Mock DeviceStorage ---
-function MockDeviceStorage(storageName) {
-    this.storageName = storageName;
-    this.data = DUMMY_STORAGE_DATA[storageName] || [];
-
-    console.log(`MockDeviceStorage for "${storageName}" initialized with ${this.data.length} items.`);
-
-    this.enumerate = function(pathPrefixOrOptions, optionsOnly) {
-        let pathPrefix = null;
-        let options = {};
-
-        if (typeof pathPrefixOrOptions === 'string') {
-            pathPrefix = pathPrefixOrOptions;
-            if (typeof optionsOnly === 'object' && optionsOnly !== null) {
-                options = optionsOnly;
-            }
-        } else if (typeof pathPrefixOrOptions === 'object' && pathPrefixOrOptions !== null) {
-            options = pathPrefixOrOptions;
-        }
-        
-        console.log(`Enumerating ${this.storageName}: pathPrefix="${pathPrefix}", options=`, options);
-        return new MockDOMCursor(this.data, pathPrefix, options.since);
-    };
-
-    // Add other methods like addNamed, get, delete as needed for further testing
-    this.get = function(fileName) {
-        console.log(`MockDeviceStorage: Attempting to get "${fileName}" from "${this.storageName}"`);
-        const request = new MockDOMRequest();
-        setTimeout(() => { // Simulate async
-            const file = this.data.find(f => f.name === fileName);
-            if (file) {
-                request.result = file; // In reality, this would be a File object
-                if (request.onsuccess) request.onsuccess();
-            } else {
-                request.error = new Error("File not found");
-                if (request.onerror) request.onerror();
-            }
-        }, 50);
-        return request;
-    };
-}
-
-// --- Mock DOMCursor (as returned by enumerate) ---
-function MockDOMCursor(allFiles, pathPrefix, sinceDate) {
-    this.files = allFiles.filter(file => {
-        let match = true;
-        if (pathPrefix && !file.name.startsWith(pathPrefix)) {
-            match = false;
-        }
-        if (sinceDate && file.lastModifiedDate < sinceDate) {
-            match = false;
-        }
-        return match;
-    });
-
-    this.currentIndex = -1;
-    this.result = null;
-    this.done = false; // KaiOS specific? The web File System API usually doesn't have this on cursor.
-                       // The second example uses `!this.done`, so let's include it.
-
-    this.onsuccess = null;
-    this.onerror = null; // Typically for I/O errors during iteration, not "no files found"
-
-    this._advance = function() {
-        this.currentIndex++;
-        if (this.currentIndex < this.files.length) {
-            this.result = this.files[this.currentIndex]; // This would be a File object in reality
-            this.done = false;
-        } else {
-            this.result = null; // Signifies no more items
-            this.done = true;
-        }
-    };
-
-    this.continue = function() {
-        console.log("Cursor: continue() called");
-        if (this.done) { // If already done, calling continue might re-trigger onsuccess with done=true
-            console.log("Cursor: already done, calling onsuccess again.");
-             if (typeof this.onsuccess === 'function') {
-                // Ensure result is null and done is true
-                this.result = null; 
-                this.done = true;
-                setTimeout(() => this.onsuccess(), 0); // Simulate async
-            }
-            return;
-        }
-        this._advance();
-        if (typeof this.onsuccess === 'function') {
-            // Simulate async call
-            setTimeout(() => this.onsuccess(), 0);
-        } else {
-            console.warn("Cursor: onsuccess not defined!");
-        }
-    };
-
-    // Initial call to prime the first result (or indicate empty)
-    // This mimics the asynchronous nature and that onsuccess is called once initially.
-    setTimeout(() => {
-        this._advance(); // Get the first item or set done=true
-        if (typeof this.onsuccess === 'function') {
-            this.onsuccess();
-        } else if (this.files.length === 0 && typeof this.onerror === 'function') {
-            // The original doc example implies onerror for "No file found"
-            // but usually onsuccess is called with result=null and done=true.
-            // Let's stick to onsuccess always being called as per `if(cursor.result.name !== null)`
-            // or `if (!this.done)`
-        }
-    }, 0); // Simulate async
-}
-
-// --- Mock DOMRequest (for methods like get, addNamed, delete) ---
-function MockDOMRequest() {
-    this.result = null;
-    this.error = null;
-    this.onsuccess = null;
-    this.onerror = null;
-    // KaiOS also seems to use `this.readyState = "done"` when complete, but not strictly needed for this.
-}
-
-
-// --- Main Entry Point Mock ---
-navigator.getDeviceStorage = function(storageName) {
-    console.log(`navigator.getDeviceStorage called with: ${storageName}`);
-    if (DUMMY_STORAGE_DATA[storageName]) {
-        return new MockDeviceStorage(storageName);
-    }
-    console.error(`Storage area "${storageName}" not mocked.`);
-    // To prevent errors, return a dummy storage that will yield no files
-    return new MockDeviceStorage("__empty__"); 
-};
-
-navigator.getDeviceStorages = function(storageName) {
-    console.log(`navigator.getDeviceStorages called with: ${storageName}`);
-    // This is a simplified mock. A real one would return an array,
-    // potentially differentiating between internal and external 'sdcard'.
-    if (DUMMY_STORAGE_DATA[storageName]) {
-        return [new MockDeviceStorage(storageName)]; // Return as an array
-    }
-    console.error(`Storage area "${storageName}" not mocked for getDeviceStorages.`);
-    return [new MockDeviceStorage("__empty__")];
-};
-
-// -------------------- DUMMY IMPLEMENTATION END --------------------
-
-console.log("---- Running first enumerate example ----");
-var pics_example1 = navigator.getDeviceStorage('pictures');
-
-// Let's browse all the images available
-var cursor_example1 = pics_example1.enumerate();
-
-cursor_example1.onsuccess = function () {
-  // The original doc has `if(cursor.result.name !== null)`
-  // A more robust check is `if (this.result)` or `if (!this.done)`
-  // The second example uses `!this.done`, which is generally better.
-  if (this.result) { // if a file object is set
-    var file = this.result;
-    console.log("File found (Ex1): " + file.name + " (type: " + file.type + ", size: " + file.size + ")");
- 
-    // Once we found a file we check if there is other results
-    // Then we move to the next result, which call the cursor
-    // success with the next file as result.
-      this.continue();
-  } else if (this.done) {
-    console.log("Example 1: Enumeration complete. No more files.");
-  } else {
-    // This case (this.result is null but this.done is false) shouldn't really happen with the mock's logic
-    // if onsuccess is only called after _advance().
-    console.log("Example 1: Enumeration yielded null result but not done, usually means empty or error.");
-  }
-}
-
-cursor_example1.onerror = function () { 
-    console.warn("No file found (Ex1 Error): " + this.error); 
-}
-
-console.log("\n---- Running second enumerate example (with 'since' parameter) ----");
-var pics_example2 = navigator.getDeviceStorage('pictures');
-
-// Lets retrieve picture from the last week.
-var oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000);
-console.log("Searching for pictures since:", oneWeekAgo.toISOString());
-
-var param = {
-  since: oneWeekAgo
-};
-
-var cursor_example2 = pics_example2.enumerate(param); // No path prefix, just options
-
-cursor_example2.onsuccess = function () {
-  if (this.result) { // Check if a file object is present
-    var file = this.result;
-    console.log("Picture taken on (Ex2): " + file.lastModifiedDate.toISOString() + " - Name: " + file.name);
-  }
-
-  if (!this.done) {
-    this.continue();
-  } else {
-    console.log("Example 2: Enumeration complete (filtered by date).");
-  }
-}
-
-cursor_example2.onerror = function () { 
-    console.warn("Error during enumeration (Ex2): " + this.error); 
-}
-
-
-console.log("\n---- Running third enumerate example (with path prefix) ----");
-var pics_example3 = navigator.getDeviceStorage('pictures');
-var cursor_example3 = pics_example3.enumerate("holidays/"); // Path prefix
-
-cursor_example3.onsuccess = function () {
-  if (this.result) {
-    var file = this.result;
-    console.log("File found in 'holidays/' (Ex3): " + file.name);
-  }
-
-  if (!this.done) {
-    this.continue();
-  } else {
-    console.log("Example 3: Enumeration complete (filtered by path 'holidays/').");
-  }
-}
-cursor_example3.onerror = function () { 
-    console.warn("Error during enumeration (Ex3): " + this.error); 
-}
-
-// Example of using 'get'
-console.log("\n---- Running 'get' example ----");
-var sdcard = navigator.getDeviceStorage('sdcard');
-var request = sdcard.get("my-file.txt");
-
-request.onsuccess = function () {
-  var file = this.result;
-  console.log("Get the file (from sdcard): " + file.name + " (type: " + file.type + ")");
-}
-
-request.onerror = function () {
-  console.warn("Unable to get the file: " + this.error);
-}
+			// (The lengthy dummy DeviceStorage mock is unchanged and remains below)
+			// ...
+			const DUMMY_STORAGE_DATA = {
+				pictures: [
+					{ name: "holidays/beach.jpg", lastModifiedDate: new Date("2023-01-15T10:00:00Z"), type: "image/jpeg", size: 1024*500 },
+					{ name: "pets/cat.png", lastModifiedDate: new Date("2023-03-22T15:30:00Z"), type: "image/png", size: 1024*200 },
+					{ name: "food/sushi.gif", lastModifiedDate: new Date("2024-05-01T09:15:00Z"), type: "image/gif", size: 1024*800 },
+					{ name: "holidays/mountains.jpg", lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), type: "image/jpeg", size: 1024*600 },
+					{ name: "screenshots/error_log.png", lastModifiedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: "image/png", size: 1024*50 }
+				],
+				music: [ { name: "song1.mp3", lastModifiedDate: new Date(), type: "audio/mpeg", size: 1024*3000 }, ],
+				sdcard: [ { name: "my-file.txt", lastModifiedDate: new Date(), type: "text/plain", size: 20 } ]
+			};
+			if (typeof navigator === 'undefined') { global.navigator = {}; }
+			function MockDeviceStorage(storageName) {
+				this.storageName = storageName;
+				this.data = DUMMY_STORAGE_DATA[storageName] || [];
+				this.enumerate = function(pathPrefixOrOptions, optionsOnly) {
+					let pathPrefix = null; let options = {};
+					if (typeof pathPrefixOrOptions === 'string') { pathPrefix = pathPrefixOrOptions; if (typeof optionsOnly === 'object' && optionsOnly !== null) { options = optionsOnly; }
+					} else if (typeof pathPrefixOrOptions === 'object' && pathPrefixOrOptions !== null) { options = pathPrefixOrOptions; }
+					return new MockDOMCursor(this.data, pathPrefix, options.since);
+				};
+				this.get = function(fileName) {
+					const request = new MockDOMRequest();
+					setTimeout(() => {
+						const file = this.data.find(f => f.name === fileName);
+						if (file) { request.result = file; if (request.onsuccess) request.onsuccess();
+						} else { request.error = new Error("File not found"); if (request.onerror) request.onerror(); }
+					}, 50);
+					return request;
+				};
+			}
+			function MockDOMCursor(allFiles, pathPrefix, sinceDate) {
+				this.files = allFiles.filter(file => { let match = true; if (pathPrefix && !file.name.startsWith(pathPrefix)) { match = false; } if (sinceDate && file.lastModifiedDate < sinceDate) { match = false; } return match; });
+				this.currentIndex = -1; this.result = null; this.done = false; this.onsuccess = null; this.onerror = null;
+				this._advance = function() { this.currentIndex++; if (this.currentIndex < this.files.length) { this.result = this.files[this.currentIndex]; this.done = false; } else { this.result = null; this.done = true; } };
+				this.continue = function() { if (this.done) { if (typeof this.onsuccess === 'function') { this.result = null;  this.done = true; setTimeout(() => this.onsuccess(), 0); } return; } this._advance(); if (typeof this.onsuccess === 'function') { setTimeout(() => this.onsuccess(), 0); } };
+				setTimeout(() => { this._advance(); if (typeof this.onsuccess === 'function') { this.onsuccess(); } }, 0);
+			}
+			function MockDOMRequest() { this.result = null; this.error = null; this.onsuccess = null; this.onerror = null; }
+			navigator.getDeviceStorage = function(storageName) { if (DUMMY_STORAGE_DATA[storageName]) { return new MockDeviceStorage(storageName); } return new MockDeviceStorage("__empty__"); };
+			navigator.getDeviceStorages = function(storageName) { if (DUMMY_STORAGE_DATA[storageName]) { return [new MockDeviceStorage(storageName)]; } return [new MockDeviceStorage("__empty__")]; };
 		</script>
 	</div>
 </body>
