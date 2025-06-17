@@ -251,7 +251,8 @@
 
         function isCloudPhone() {
             const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
-            return normalizedUserAgent.includes('cloud phone');
+            return false;
+//normalizedUserAgent.includes('cloud phone');
         }
 
         function fetchFileList() {
