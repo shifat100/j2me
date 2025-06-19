@@ -6,3 +6,6 @@ jars/King Kong The Official Game.jar
 jars/Gladiator Kricket (Cricket).jar
 jars/The Avengers.jar
 jars/Rayman 3.jar
+jars/Asphalt Urban GT .jar
+jars/Asphalt 2 Urban GT.jar
+jars/Asphalt 6 Adrenaline.jar
