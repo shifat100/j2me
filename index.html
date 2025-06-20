@@ -29,20 +29,20 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            font-size: 14px; /* Slightly smaller base font */
+            font-size: 14px;
         }
 
         .main-content {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 5px; /* Reduced padding */
+            padding: 5px;
         }
 
         h1 {
             text-align: center;
             color: var(--primary-color);
             font-size: 1.1em;
-            margin: 0 0 5px 0; /* Reduced margin */
+            margin: 0 0 5px 0;
             text-transform: uppercase;
         }
         
@@ -51,7 +51,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 5px;
-            padding: 3px 5px; /* Reduced padding */
+            padding: 3px 5px;
             background-color: var(--list-item-bg);
             border-radius: 4px;
             border: 1px solid var(--border-color);
@@ -61,27 +61,20 @@
             align-items: center;
             gap: 5px;
         }
-        .control-group label {
-            font-size: 0.9em;
-            font-weight: bold;
-        }
+        .control-group label { font-size: 0.9em; font-weight: bold; }
         .control-group select, .control-group button {
             background-color: var(--background-color);
             color: var(--text-color);
             border: 1px solid var(--border-color);
             border-radius: 3px;
-            padding: 2px 4px; /* Reduced padding */
+            padding: 2px 4px;
             font-size: 0.9em;
         }
-        #sort-order-btn {
-            font-weight: bold;
-            width: 25px;
-            text-align: center;
-        }
+        #sort-order-btn { font-weight: bold; width: 25px; text-align: center; }
 
         #search-box {
             width: 100%;
-            padding: 6px; /* Reduced padding */
+            padding: 6px;
             margin-bottom: 5px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -100,18 +93,14 @@
 
         #file-list { list-style-type: none; padding: 0; margin: 0; }
         #file-list li {
-            padding: 10px 8px; /* Reduced padding */
+            padding: 10px 8px;
             border: 1px solid var(--border-color);
             background-color: var(--list-item-bg);
             margin-bottom: 4px;
             border-radius: 3px;
             cursor: pointer;
         }
-        #file-list li.selected {
-            background-color: var(--primary-color);
-            color: var(--background-color);
-            font-weight: bold;
-        }
+        #file-list li.selected { background-color: var(--primary-color); color: var(--background-color); font-weight: bold; }
         
         .pagination {
             display: flex;
@@ -185,11 +174,10 @@
 
     <script>
         // --- GLOBAL STATE ---
-        var allFiles = []; // Stores objects: {path, name, type}
+        var allFiles = []; 
         var filteredFiles = [];
         var currentPage = 1;
         var itemsPerPage = 10;
-        // --- MODIFIED: Default sort is now 'none' ---
         var sortCriteria = 'none'; 
         var sortOrder = 'asc';
 
@@ -232,7 +220,6 @@
             xhr.send();
         }
 
-        // --- MODIFIED: Setup includes 'None' option ---
         function setupControls() {
             const sortBySelect = document.getElementById('sort-by');
             const itemsPerPageSelect = document.getElementById('items-per-page');
@@ -240,14 +227,9 @@
             const prevPageBtn = document.getElementById('prev-page-btn');
             const nextPageBtn = document.getElementById('next-page-btn');
 
-            ['None', 'Name', 'Type'].forEach(val => {
-                sortBySelect.add(new Option(val, val.toLowerCase()));
-            });
-            [10, 20, 50].forEach(val => {
-                itemsPerPageSelect.add(new Option(val, val));
-            });
+            ['None', 'Name', 'Type'].forEach(val => sortBySelect.add(new Option(val, val.toLowerCase())));
+            [10, 20, 50].forEach(val => itemsPerPageSelect.add(new Option(val, val)));
 
-            // Set the initial value of the dropdown to match the default state
             sortBySelect.value = sortCriteria; 
 
             sortBySelect.onchange = function() { sortCriteria = this.value; applyFiltersAndRender(); };
@@ -256,17 +238,26 @@
                 this.innerHTML = (sortOrder === 'asc') ? '↑' : '↓';
                 applyFiltersAndRender();
             };
-            itemsPerPageSelect.onchange = function() { itemsPerPage = parseInt(this.value, 10); currentPage = 1; renderPage(); };
+            // *** MODIFIED: Changing items per page now also resets focus to search box ***
+            itemsPerPageSelect.onchange = function() {
+                itemsPerPage = parseInt(this.value, 10);
+                currentPage = 1;
+                currentFocus = 'search-box'; // Reset focus
+                renderPage();
+            };
             prevPageBtn.onclick = changePage.bind(null, -1);
             nextPageBtn.onclick = changePage.bind(null, 1);
         }
         
+        // *** MODIFIED: This function now always resets focus to the search box ***
         function applyFiltersAndRender() {
-            // 1. Filter: This preserves the original order from list.txt
+            currentFocus = 'search-box'; // ALWAYS reset focus to search on filter/sort
+            
+            // 1. Filter
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
             
-            // 2. Sort: This will now handle the 'none' case
+            // 2. Sort
             sortFiles();
 
             // 3. Render
@@ -274,29 +265,16 @@
             renderPage();
         }
 
-        // --- MODIFIED: Sorting logic now handles the 'none' case ---
         function sortFiles() {
-            // If 'none', the array is already in default order. We just need to reverse it if requested.
             if (sortCriteria === 'none') {
-                if (sortOrder === 'desc') {
-                    filteredFiles.reverse();
-                }
-                return; // No further sorting needed
+                if (sortOrder === 'desc') filteredFiles.reverse();
+                return;
             }
-
-            // Otherwise, perform the standard sort
             filteredFiles.sort((a, b) => {
                 let valA, valB;
                 switch (sortCriteria) {
-                    case 'type':
-                        valA = a.type.toLowerCase();
-                        valB = b.type.toLowerCase();
-                        break;
-                    case 'name':
-                    default:
-                        valA = a.name.toLowerCase();
-                        valB = b.name.toLowerCase();
-                        break;
+                    case 'type': valA = a.type.toLowerCase(); valB = b.type.toLowerCase(); break;
+                    default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
                 }
                 let comparison = valA.localeCompare(valB);
                 return (sortOrder === 'asc') ? comparison : comparison * -1;
@@ -310,9 +288,8 @@
             if (filteredFiles.length === 0) {
                 listElement.innerHTML = '<li>No files found.</li>';
                 renderPagination();
-                currentFocus = 'search-box';
-                listIndex = -1;
-                updateSelection();
+                listIndex = -1; // Ensure list is not selected
+                updateSelection(); // Will focus search box because of currentFocus
                 return;
             }
 
@@ -328,7 +305,8 @@
             });
 
             renderPagination();
-            listIndex = currentFocus === 'list' ? 0 : -1;
+            // Reset list index since focus is moving or has moved to search
+            listIndex = -1; 
             updateSelection();
         }
 
@@ -343,15 +321,35 @@
             nextBtn.disabled = (currentPage >= totalPages);
         }
 
+        // Note: Paging does NOT reset focus to search, to allow for smooth browsing.
         function changePage(direction) {
             const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
             const newPage = currentPage + direction;
             if (newPage >= 1 && newPage <= totalPages) {
                 currentPage = newPage;
-                currentFocus = 'list';
-                renderPage();
+                currentFocus = 'list'; // Keep focus on the list
+                listIndex = 0; // Select the first item on the new page
+                renderPageForPaging(); // Use a special render that doesn't reset focus
             }
         }
+        
+        // A version of renderPage that doesn't reset global focus state
+        function renderPageForPaging() {
+             const listElement = document.getElementById('file-list');
+             listElement.innerHTML = '';
+             const startIndex = (currentPage - 1) * itemsPerPage;
+             const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
+             pageItems.forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.setAttribute('data-path', file.path);
+                listItem.onclick = () => handleFileClick(file.path);
+                listElement.appendChild(listItem);
+            });
+            renderPagination();
+            updateSelection();
+        }
+
 
         function handleFileClick(filePath) {
             showExtractionModal(`Extracting...`);
@@ -366,7 +364,7 @@
             });
         }
 
-        // --- KEYBOARD CONTROL (Unchanged) ---
+        // --- KEYBOARD CONTROL ---
         function handleKeyDown(event) {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'].includes(event.key)) {
                 event.preventDefault();
@@ -438,13 +436,8 @@
         }
 
         function updateSoftkeys() {
-            const left = document.getElementById('softkey-left');
-            const center = document.getElementById('softkey-center');
-            const right = document.getElementById('softkey-right');
-            
-            left.textContent = '';
-            right.textContent = 'Exit';
-
+            const left = document.getElementById('softkey-left'), center = document.getElementById('softkey-center'), right = document.getElementById('softkey-right');
+            left.textContent = ''; right.textContent = 'Exit';
             if (currentFocus === 'modal') {
                 center.textContent = 'CLOSE'; right.textContent = '';
             } else if (currentFocus === 'list') {
@@ -458,20 +451,22 @@
             }
         }
 
-        // --- MODAL & EXTRACTION (Unchanged) ---
+        // --- MODAL & EXTRACTION ---
         function showExtractionModal(message, isError = false) { currentFocus = 'modal'; document.getElementById('modal-message').textContent = message; document.getElementById('extraction-modal').style.display = 'flex'; updateSoftkeys(); }
-        function closeExtractionModal() { currentFocus = 'list'; document.getElementById('extraction-modal').style.display = 'none'; updateSelection(); }
+        // *** MODIFIED: Closing the modal now resets focus to the search box ***
+        function closeExtractionModal() {
+            currentFocus = 'search-box';
+            document.getElementById('extraction-modal').style.display = 'none';
+            updateSelection();
+        }
         function extractMidletClassName(zipUrl, callback) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    JSZip.loadAsync(xhr.response).then(zip => {
-                        const manifestFile = zip.file("META-INF/MANIFEST.MF");
-                        if (!manifestFile) return callback(new Error("MANIFEST.MF not found."), null);
-                        return manifestFile.async("string");
-                    }).then(content => {
+                    JSZip.loadAsync(xhr.response).then(zip => zip.file("META-INF/MANIFEST.MF")?.async("string")).then(content => {
+                        if (!content) return callback(new Error("MANIFEST.MF not found or empty."), null);
                         const midletLine = content.split(/\r?\n/).find(line => line.match(/^MIDlet-\d+:/));
                         if (!midletLine) return callback(new Error("MIDlet-N not found."), null);
                         const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
