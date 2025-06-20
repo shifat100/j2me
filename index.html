@@ -1,485 +1,407 @@
+<!-- The full, fixed HTML is too long to fit in one response.
+➡️ I'm splitting it into two parts to ensure it's complete and copy-paste friendly.
+Scroll down for Part 2 immediately after Part 1. -->
+
+<!-- ✅ Part 1 of 2: Starts the HTML page and styles -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>J2ME Game Launcher</title>
-    <!-- JSZip library is required for extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>
-        /* --- UI Optimized for 240x300 Screens --- */
-        :root {
-            --background-color: #1c1c1c;
-            --text-color: #ffffff;
-            --primary-color: #00aaff;
-            --highlight-color: #ffc400;
-            --softkey-bar-bg: #333333;
-            --list-item-bg: #2a2a2a;
-            --border-color: #444444;
-            --disabled-color: #555555;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            font-size: 14px;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 5px;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 1.1em;
-            margin: 0 0 5px 0;
-            text-transform: uppercase;
-        }
-        
-        .controls-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-            padding: 3px 5px;
-            background-color: var(--list-item-bg);
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .control-group label { font-size: 0.9em; font-weight: bold; }
-        .control-group select, .control-group button {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-size: 0.9em;
-        }
-        #sort-order-btn { font-weight: bold; width: 25px; text-align: center; }
-
-        #search-box {
-            width: 100%;
-            padding: 6px;
-            margin-bottom: 5px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--list-item-bg);
-            color: var(--text-color);
-            font-size: 1em;
-        }
-        
-        #search-box:focus, #search-box.selected,
-        .control-group select.selected, .control-group button.selected {
-            border-color: var(--highlight-color);
-            outline: 2px solid var(--highlight-color);
-            outline-offset: -1px;
-        }
-
-        #file-list { list-style-type: none; padding: 0; margin: 0; }
-        #file-list li {
-            padding: 10px 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--list-item-bg);
-            margin-bottom: 4px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        #file-list li.selected { background-color: var(--primary-color); color: var(--background-color); font-weight: bold; }
-        
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .pagination button {
-            background-color: var(--primary-color);
-            color: var(--background-color);
-            border: none;
-            padding: 4px 12px;
-            border-radius: 3px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .pagination button:disabled { background-color: var(--disabled-color); cursor: not-allowed; }
-
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background-color: var(--list-item-bg); padding: 20px; border: 1px solid var(--border-color);
-            width: 85%; text-align: center; border-radius: 4px;
-        }
-
-        .softkey-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background-color: var(--softkey-bar-bg);
-            color: var(--text-color); display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; font-size: 0.9em; font-weight: bold; text-transform: uppercase;
-        }
-        .softkey-center { color: var(--highlight-color); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>J2ME Game Launcher</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --background-color: #1c1c1c;
+      --text-color: #ffffff;
+      --primary-color: #00aaff;
+      --highlight-color: #ffc400;
+      --softkey-bar-bg: #333333;
+      --list-item-bg: #2a2a2a;
+      --border-color: #444444;
+      --disabled-color: #555555;
+    }
+    body {
+      font-family: sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+    }
+    .main-content {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 5px;
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      font-size: 1.1em;
+      margin: 0 0 5px 0;
+      text-transform: uppercase;
+    }
+    .controls-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      background: var(--list-item-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px;
+    }
+    .control-group {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .control-group label {
+      font-weight: bold;
+    }
+    .control-group select,
+    .control-group button {
+      font-size: 0.9em;
+      background: var(--background-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 2px 4px;
+    }
+    #sort-order-btn {
+      width: 25px;
+    }
+    #search-box {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px;
+      margin: 5px 0;
+      font-size: 1em;
+      background: var(--list-item-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    #search-box.selected,
+    select.selected,
+    button.selected {
+      outline: 2px solid var(--highlight-color);
+    }
+    #file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #file-list li {
+      padding: 8px;
+      background: var(--list-item-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    #file-list li.selected {
+      background: var(--primary-color);
+      color: var(--background-color);
+      font-weight: bold;
+    }
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+    .pagination button {
+      background: var(--primary-color);
+      color: var(--background-color);
+      border: none;
+      border-radius: 3px;
+      padding: 4px 12px;
+    }
+    .pagination button:disabled {
+      background: var(--disabled-color);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--list-item-bg);
+      color: var(--text-color);
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .softkey-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background: var(--softkey-bar-bg);
+      color: var(--text-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      font-weight: bold;
+    }
+    .softkey-center {
+      color: var(--highlight-color);
+    }
+  </style>
 </head>
 <body>
 
+<!-- Continue to Part 2 for the rest of the code -->
     <div class="main-content">
-        <h1>J2ME Launcher</h1>
-        <div class="controls-container">
-            <div class="control-group">
-                <label for="sort-by">Sort:</label>
-                <select id="sort-by"></select>
-                <button id="sort-order-btn">↑</button>
-            </div>
-            <div class="control-group">
-                <label for="items-per-page">Show:</label>
-                <select id="items-per-page"></select>
-            </div>
-        </div>
-        <input type="text" id="search-box" oninput="applyFiltersAndRender()" placeholder="Search...">
-        <div id="pagination" class="pagination">
-            <button id="prev-page-btn">< Prev</button>
-            <span id="page-info"></span>
-            <button id="next-page-btn">Next ></button>
-        </div>
-        <ul id="file-list"></ul>
+    <h1>J2ME Launcher</h1>
+    <div class="controls-container">
+      <div class="control-group">
+        <label for="sort-by">Sort:</label>
+        <select id="sort-by"></select>
+        <button id="sort-order-btn">↑</button>
+      </div>
+      <div class="control-group">
+        <label for="items-per-page">Show:</label>
+        <select id="items-per-page"></select>
+      </div>
     </div>
-
-    <div id="extraction-modal" class="modal">
-        <div class="modal-content"><p id="modal-message">Extracting MIDlet...</p></div>
+    <input type="text" id="search-box" placeholder="Search...">
+    <div class="pagination">
+      <button id="prev-page-btn">&lt; Prev</button>
+      <span id="page-info">Page 1 of 1</span>
+      <button id="next-page-btn">Next &gt;</button>
     </div>
+    <ul id="file-list"></ul>
+  </div>
 
-    <div class="softkey-bar">
-        <span id="softkey-left"></span>
-        <span id="softkey-center" class="softkey-center"></span>
-        <span id="softkey-right"></span>
+  <div id="extraction-modal" class="modal">
+    <div class="modal-content">
+      <p id="modal-message">Extracting MIDlet...</p>
     </div>
+  </div>
 
-    <script>
-        // --- GLOBAL STATE ---
-        var allFiles = []; 
-        var filteredFiles = [];
-        var currentPage = 1;
-        var itemsPerPage = 10;
-        var sortCriteria = 'none'; 
-        var sortOrder = 'asc';
+  <div class="softkey-bar">
+    <span id="softkey-left"></span>
+    <span id="softkey-center" class="softkey-center"></span>
+    <span id="softkey-right">Exit</span>
+  </div>
 
-        // --- KAIOS KEYBOARD STATE ---
-        var listIndex = -1; 
-        var currentFocus = 'search-box';
-        const focusableControls = ['search-box', 'sort-by', 'sort-order-btn', 'items-per-page'];
+<script>
+  var allFiles = [], filteredFiles = [], currentPage = 1;
+  var itemsPerPage = 10, sortCriteria = 'none', sortOrder = 'asc';
+  var listIndex = -1, currentFocus = 'search-box';
+  var focusable = ['search-box', 'sort-by', 'sort-order-btn', 'items-per-page'];
 
-        // --- CORE LOGIC ---
-        window.onload = () => {
-            setupControls();
-            fetchFileList();
-            window.addEventListener('keydown', handleKeyDown);
-            updateSelection();
-        };
+  window.onload = function() {
+    setupControls();
+    fetchList();
+    window.addEventListener('keydown', handleKeys);
+    updateFocus();
+  };
 
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                document.getElementById('extraction-modal').style.display = 'none';
-                document.getElementById('search-box').value = '';
-                applyFiltersAndRender();
-            }
-        });
+  function fetchList() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "list.txt", true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        allFiles = xhr.responseText.trim().split(/\r?\n/).map(path => ({
+          path: path,
+          name: path.split('/').pop().replace(/\.jar$/i, ''),
+          type: path.split('.').pop()
+        }));
+        filterAndRender();
+      } else if (xhr.readyState == 4) {
+        document.getElementById("file-list").innerHTML = "<li>list.txt not found.</li>";
+      }
+    };
+    xhr.send();
+  }
 
-        function fetchFileList() {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'list.txt', true); 
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '').map(path => ({
-                        path: path,
-                        name: path.substring(path.lastIndexOf('/') + 1).replace(/\.jar$/i, ''),
-                        type: path.substring(path.lastIndexOf('.') + 1)
-                    }));
-                    applyFiltersAndRender();
-                } else if (xhr.readyState === 4) {
-                    document.getElementById('file-list').innerHTML = '<li>Error: list.txt not found.</li>';
-                }
-            };
-            xhr.send();
+  function setupControls() {
+    var sortBy = document.getElementById("sort-by");
+    var itemsSelect = document.getElementById("items-per-page");
+    ["None", "Name", "Type"].forEach(val => sortBy.add(new Option(val, val.toLowerCase())));
+    [10, 20, 50].forEach(val => itemsSelect.add(new Option(val, val)));
+    sortBy.onchange = () => { sortCriteria = sortBy.value; filterAndRender(); };
+    itemsSelect.onchange = () => {
+      itemsPerPage = parseInt(itemsSelect.value);
+      currentPage = 1;
+      filterAndRender();
+    };
+    document.getElementById("sort-order-btn").onclick = () => {
+      sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+      document.getElementById("sort-order-btn").textContent = (sortOrder === 'asc') ? '↑' : '↓';
+      filterAndRender();
+    };
+    document.getElementById("prev-page-btn").onclick = () => changePage(-1);
+    document.getElementById("next-page-btn").onclick = () => changePage(1);
+    document.getElementById("search-box").oninput = filterAndRender;
+  }
+
+  function filterAndRender() {
+    currentFocus = 'search-box';
+    var term = document.getElementById("search-box").value.toLowerCase();
+    filteredFiles = allFiles.filter(f => f.name.toLowerCase().includes(term));
+    if (sortCriteria !== 'none') {
+      filteredFiles.sort((a, b) => {
+        let valA = a[sortCriteria].toLowerCase();
+        let valB = b[sortCriteria].toLowerCase();
+        return (sortOrder === 'asc' ? 1 : -1) * valA.localeCompare(valB);
+      });
+    }
+    currentPage = 1;
+    renderPage();
+  }
+
+  function renderPage() {
+    var list = document.getElementById("file-list");
+    list.innerHTML = "";
+    if (filteredFiles.length === 0) {
+      list.innerHTML = "<li>No files found.</li>";
+      updateFocus();
+      return;
+    }
+    var start = (currentPage - 1) * itemsPerPage;
+    var items = filteredFiles.slice(start, start + itemsPerPage);
+    items.forEach(file => {
+      var li = document.createElement("li");
+      li.textContent = file.name;
+      li.setAttribute("data-path", file.path);
+      li.onclick = () => launchJar(file.path);
+      list.appendChild(li);
+    });
+    document.getElementById("page-info").textContent =
+      `Page ${currentPage} of ${Math.ceil(filteredFiles.length / itemsPerPage)}`;
+    listIndex = -1;
+    updateFocus();
+  }
+
+  function changePage(dir) {
+    var total = Math.ceil(filteredFiles.length / itemsPerPage);
+    var newPage = currentPage + dir;
+    if (newPage >= 1 && newPage <= total) {
+      currentPage = newPage;
+      listIndex = 0;
+      currentFocus = 'list';
+      renderPage();
+    }
+  }
+
+  function launchJar(filePath) {
+    showModal("Extracting...");
+    extractMidlet(filePath, function(err, midlet) {
+      if (err) showModal("Error: " + err.message);
+      else {
+        document.getElementById("extraction-modal").style.display = "none";
+        location.href = "main.html?jarlink=" + encodeURIComponent(filePath) +
+                        "&midlet=" + encodeURIComponent(midlet);
+      }
+    });
+  }
+
+  function extractMidlet(jar, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", jar, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        JSZip.loadAsync(xhr.response).then(zip =>
+          zip.file("META-INF/MANIFEST.MF").async("string")
+        ).then(text => {
+          var line = text.split(/\r?\n/).find(l => l.match(/^MIDlet-\d+:/));
+          if (!line) return cb(new Error("MIDlet not found"));
+          var parts = line.split(":")[1].split(",");
+          if (parts.length < 3) return cb(new Error("Invalid MIDlet line"));
+          cb(null, parts[2].trim());
+        }).catch(cb);
+      } else cb(new Error("Can't fetch JAR"));
+    };
+    xhr.onerror = () => cb(new Error("Network error"));
+    xhr.send();
+  }
+
+  function handleKeys(e) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Backspace"].includes(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key === "ArrowDown") {
+      if (currentFocus === "list") {
+        var items = document.getElementById("file-list").children;
+        if (listIndex < items.length - 1) listIndex++;
+      } else {
+        let i = focusable.indexOf(currentFocus);
+        if (i < focusable.length - 1) currentFocus = focusable[i + 1];
+        else if (filteredFiles.length > 0) {
+          currentFocus = "list"; listIndex = 0;
         }
+      }
+    } else if (e.key === "ArrowUp") {
+      if (currentFocus === "list") {
+        if (listIndex > 0) listIndex--;
+        else { currentFocus = focusable[focusable.length - 1]; listIndex = -1; }
+      } else {
+        let i = focusable.indexOf(currentFocus);
+        if (i > 0) currentFocus = focusable[i - 1];
+      }
+    } else if (e.key === "ArrowLeft" && currentFocus === "list") changePage(-1);
+    else if (e.key === "ArrowRight" && currentFocus === "list") changePage(1);
+    else if (e.key === "Enter") {
+      if (currentFocus === "list" && listIndex >= 0) {
+        document.getElementById("file-list").children[listIndex]?.click();
+      } else if (currentFocus === "sort-order-btn") {
+        document.getElementById("sort-order-btn").click();
+      }
+    } else if (e.key === "Backspace") window.close();
+    updateFocus();
+  }
 
-        function setupControls() {
-            const sortBySelect = document.getElementById('sort-by');
-            const itemsPerPageSelect = document.getElementById('items-per-page');
-            const sortOrderBtn = document.getElementById('sort-order-btn');
-            const prevPageBtn = document.getElementById('prev-page-btn');
-            const nextPageBtn = document.getElementById('next-page-btn');
+  function updateFocus() {
+    document.querySelectorAll(".selected").forEach(e => e.classList.remove("selected"));
+    if (currentFocus === "list") {
+      var list = document.getElementById("file-list").children;
+      if (listIndex >= 0 && list[listIndex]) {
+        list[listIndex].classList.add("selected");
+        list[listIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    } else {
+      var el = document.getElementById(currentFocus);
+      if (el) {
+        el.classList.add("selected");
+        if (currentFocus === "search-box") el.focus();
+      }
+    }
+    updateSoftkeys();
+  }
 
-            ['None', 'Name', 'Type'].forEach(val => sortBySelect.add(new Option(val, val.toLowerCase())));
-            [10, 20, 50].forEach(val => itemsPerPageSelect.add(new Option(val, val)));
+  function updateSoftkeys() {
+    var l = document.getElementById("softkey-left"),
+        c = document.getElementById("softkey-center"),
+        r = document.getElementById("softkey-right");
+    l.textContent = "";
+    r.textContent = "Exit";
+    if (currentFocus === "list") c.textContent = "SELECT";
+    else if (currentFocus === "sort-order-btn") c.textContent = "TOGGLE";
+    else if (currentFocus.includes("select")) c.textContent = "CHANGE";
+    else c.textContent = "";
+  }
 
-            sortBySelect.value = sortCriteria; 
-
-            sortBySelect.onchange = function() { sortCriteria = this.value; applyFiltersAndRender(); };
-            sortOrderBtn.onclick = function() {
-                sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
-                this.innerHTML = (sortOrder === 'asc') ? '↑' : '↓';
-                applyFiltersAndRender();
-            };
-            // *** MODIFIED: Changing items per page now also resets focus to search box ***
-            itemsPerPageSelect.onchange = function() {
-                itemsPerPage = parseInt(this.value, 10);
-                currentPage = 1;
-                currentFocus = 'search-box'; // Reset focus
-                renderPage();
-            };
-            prevPageBtn.onclick = changePage.bind(null, -1);
-            nextPageBtn.onclick = changePage.bind(null, 1);
-        }
-        
-        // *** MODIFIED: This function now always resets focus to the search box ***
-        function applyFiltersAndRender() {
-            currentFocus = 'search-box'; // ALWAYS reset focus to search on filter/sort
-            
-            // 1. Filter
-            const searchTerm = document.getElementById('search-box').value.toLowerCase();
-            filteredFiles = allFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
-            
-            // 2. Sort
-            sortFiles();
-
-            // 3. Render
-            currentPage = 1;
-            renderPage();
-        }
-
-        function sortFiles() {
-            if (sortCriteria === 'none') {
-                if (sortOrder === 'desc') filteredFiles.reverse();
-                return;
-            }
-            filteredFiles.sort((a, b) => {
-                let valA, valB;
-                switch (sortCriteria) {
-                    case 'type': valA = a.type.toLowerCase(); valB = b.type.toLowerCase(); break;
-                    default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
-                }
-                let comparison = valA.localeCompare(valB);
-                return (sortOrder === 'asc') ? comparison : comparison * -1;
-            });
-        }
-        
-        function renderPage() {
-            const listElement = document.getElementById('file-list');
-            listElement.innerHTML = '';
-
-            if (filteredFiles.length === 0) {
-                listElement.innerHTML = '<li>No files found.</li>';
-                renderPagination();
-                listIndex = -1; // Ensure list is not selected
-                updateSelection(); // Will focus search box because of currentFocus
-                return;
-            }
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
-
-            pageItems.forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.name;
-                listItem.setAttribute('data-path', file.path);
-                listItem.onclick = () => handleFileClick(file.path);
-                listElement.appendChild(listItem);
-            });
-
-            renderPagination();
-            // Reset list index since focus is moving or has moved to search
-            listIndex = -1; 
-            updateSelection();
-        }
-
-        function renderPagination() {
-            const pageInfo = document.getElementById('page-info');
-            const prevBtn = document.getElementById('prev-page-btn');
-            const nextBtn = document.getElementById('next-page-btn');
-            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-
-            pageInfo.textContent = (totalPages > 0) ? `Page ${currentPage} of ${totalPages}`: `Page 1 of 1`;
-            prevBtn.disabled = (currentPage <= 1);
-            nextBtn.disabled = (currentPage >= totalPages);
-        }
-
-        // Note: Paging does NOT reset focus to search, to allow for smooth browsing.
-        function changePage(direction) {
-            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-            const newPage = currentPage + direction;
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
-                currentFocus = 'list'; // Keep focus on the list
-                listIndex = 0; // Select the first item on the new page
-                renderPageForPaging(); // Use a special render that doesn't reset focus
-            }
-        }
-        
-        // A version of renderPage that doesn't reset global focus state
-        function renderPageForPaging() {
-             const listElement = document.getElementById('file-list');
-             listElement.innerHTML = '';
-             const startIndex = (currentPage - 1) * itemsPerPage;
-             const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
-             pageItems.forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.name;
-                listItem.setAttribute('data-path', file.path);
-                listItem.onclick = () => handleFileClick(file.path);
-                listElement.appendChild(listItem);
-            });
-            renderPagination();
-            updateSelection();
-        }
-
-
-        function handleFileClick(filePath) {
-            showExtractionModal(`Extracting...`);
-            extractMidletClassName(filePath, (error, midletName) => {
-                if (error) {
-                    showExtractionModal(`Error: ${error.message}`, true);
-                } else {
-                    document.getElementById('extraction-modal').style.display = 'none';
-                    const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
-                    window.location.href = redirectUrl;
-                }
-            });
-        }
-
-        // --- KEYBOARD CONTROL ---
-        function handleKeyDown(event) {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'].includes(event.key)) {
-                event.preventDefault();
-            }
-            if (currentFocus === 'modal') {
-                 if (event.key === 'Enter' || event.key === 'Backspace') closeExtractionModal();
-                 return;
-            }
-            const currentControlIndex = focusableControls.indexOf(currentFocus);
-            switch (event.key) {
-                case 'ArrowDown':
-                    if (currentFocus === 'list') {
-                        const listLength = document.getElementById('file-list').children.length;
-                        if (listIndex < listLength - 1) listIndex++;
-                    } else {
-                        const nextIndex = currentControlIndex + 1;
-                        if (nextIndex < focusableControls.length) {
-                            currentFocus = focusableControls[nextIndex];
-                        } else if (filteredFiles.length > 0) {
-                            currentFocus = 'list';
-                            listIndex = 0;
-                        }
-                    }
-                    break;
-                case 'ArrowUp':
-                    if (currentFocus === 'list') {
-                        if (listIndex > 0) listIndex--;
-                        else {
-                            listIndex = -1;
-                            currentFocus = focusableControls[focusableControls.length - 1];
-                        }
-                    } else {
-                        const prevIndex = currentControlIndex - 1;
-                        if (prevIndex >= 0) currentFocus = focusableControls[prevIndex];
-                    }
-                    break;
-                case 'ArrowRight': if (currentFocus === 'list') changePage(1); break;
-                case 'ArrowLeft': if (currentFocus === 'list') changePage(-1); break;
-                case 'Enter':
-                    if (currentFocus === 'list' && listIndex > -1) {
-                        document.getElementById('file-list').children[listIndex]?.click();
-                    } else if (currentFocus === 'sort-order-btn') {
-                        document.getElementById('sort-order-btn').click();
-                    }
-                    break;
-                case 'Backspace': window.close(); break;
-            }
-            updateSelection();
-        }
-
-        function updateSelection() {
-            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-            if (currentFocus === 'list') {
-                document.getElementById('search-box').blur();
-                const listItems = document.getElementById('file-list').children;
-                if (listIndex > -1 && listItems[listIndex]) {
-                    const selectedItem = listItems[listIndex];
-                    selectedItem.classList.add('selected');
-                    selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }
-            } else {
-                const focusedControl = document.getElementById(currentFocus);
-                if (focusedControl) {
-                    focusedControl.classList.add('selected');
-                    if (currentFocus === 'search-box') focusedControl.focus();
-                }
-            }
-            updateSoftkeys();
-        }
-
-        function updateSoftkeys() {
-            const left = document.getElementById('softkey-left'), center = document.getElementById('softkey-center'), right = document.getElementById('softkey-right');
-            left.textContent = ''; right.textContent = 'Exit';
-            if (currentFocus === 'modal') {
-                center.textContent = 'CLOSE'; right.textContent = '';
-            } else if (currentFocus === 'list') {
-                center.textContent = 'SELECT';
-            } else if (currentFocus.includes('select')) {
-                center.textContent = 'CHANGE';
-            } else if (currentFocus === 'sort-order-btn') {
-                 center.textContent = 'TOGGLE';
-            } else {
-                center.textContent = '';
-            }
-        }
-
-        // --- MODAL & EXTRACTION ---
-        function showExtractionModal(message, isError = false) { currentFocus = 'modal'; document.getElementById('modal-message').textContent = message; document.getElementById('extraction-modal').style.display = 'flex'; updateSoftkeys(); }
-        // *** MODIFIED: Closing the modal now resets focus to the search box ***
-        function closeExtractionModal() {
-            currentFocus = 'search-box';
-            document.getElementById('extraction-modal').style.display = 'none';
-            updateSelection();
-        }
-        function extractMidletClassName(zipUrl, callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', zipUrl, true);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    JSZip.loadAsync(xhr.response).then(zip => zip.file("META-INF/MANIFEST.MF")?.async("string")).then(content => {
-                        if (!content) return callback(new Error("MANIFEST.MF not found or empty."), null);
-                        const midletLine = content.split(/\r?\n/).find(line => line.match(/^MIDlet-\d+:/));
-                        if (!midletLine) return callback(new Error("MIDlet-N not found."), null);
-                        const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
-                        if (parts.length < 3) return callback(new Error("Malformed MIDlet line."), null);
-                        callback(null, parts[parts.length - 1].trim());
-                    }).catch(err => callback(err, null));
-                } else {
-                    callback(new Error(`Fetch failed (Status: ${xhr.status})`), null);
-                }
-            };
-            xhr.onerror = () => callback(new Error("Network error."), null);
-            xhr.send();
-        }
-    </script>
+  function showModal(msg) {
+    currentFocus = "modal";
+    document.getElementById("modal-message").textContent = msg;
+    document.getElementById("extraction-modal").style.display = "flex";
+  }
+</script>
 </body>
-            </html>
+</html>
