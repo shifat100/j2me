@@ -98,12 +98,7 @@
             outline-offset: -1px;
         }
 
-        #file-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        #file-list { list-style-type: none; padding: 0; margin: 0; }
         #file-list li {
             padding: 10px 8px; /* Reduced padding */
             border: 1px solid var(--border-color);
@@ -112,7 +107,6 @@
             border-radius: 3px;
             cursor: pointer;
         }
-
         #file-list li.selected {
             background-color: var(--primary-color);
             color: var(--background-color);
@@ -123,7 +117,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 0; /* Reduced padding */
+            padding: 5px 0;
             font-weight: bold;
             font-size: 0.9em;
         }
@@ -136,10 +130,7 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .pagination button:disabled {
-            background-color: var(--disabled-color);
-            cursor: not-allowed;
-        }
+        .pagination button:disabled { background-color: var(--disabled-color); cursor: not-allowed; }
 
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
@@ -162,7 +153,6 @@
 
     <div class="main-content">
         <h1>J2ME Launcher</h1>
-
         <div class="controls-container">
             <div class="control-group">
                 <label for="sort-by">Sort:</label>
@@ -174,15 +164,12 @@
                 <select id="items-per-page"></select>
             </div>
         </div>
-
         <input type="text" id="search-box" oninput="applyFiltersAndRender()" placeholder="Search...">
-        
         <div id="pagination" class="pagination">
             <button id="prev-page-btn">< Prev</button>
             <span id="page-info"></span>
             <button id="next-page-btn">Next ></button>
         </div>
-
         <ul id="file-list"></ul>
     </div>
 
@@ -202,12 +189,13 @@
         var filteredFiles = [];
         var currentPage = 1;
         var itemsPerPage = 10;
-        var sortCriteria = 'name';
+        // --- MODIFIED: Default sort is now 'none' ---
+        var sortCriteria = 'none'; 
         var sortOrder = 'asc';
 
         // --- KAIOS KEYBOARD STATE ---
         var listIndex = -1; 
-        var currentFocus = 'search-box'; // 'search-box', 'sort-by', 'sort-order-btn', 'items-per-page', 'list'
+        var currentFocus = 'search-box';
         const focusableControls = ['search-box', 'sort-by', 'sort-order-btn', 'items-per-page'];
 
         // --- CORE LOGIC ---
@@ -226,20 +214,16 @@
             }
         });
 
-        // --- MODIFIED: Fetches from list.txt ---
         function fetchFileList() {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'list.txt', true); 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    allFiles = xhr.responseText
-                        .split(/\r?\n/)
-                        .filter(line => line.trim() !== '')
-                        .map(function(path) {
-                            const name = path.substring(path.lastIndexOf('/') + 1).replace(/\.jar$/i, '');
-                            const type = path.substring(path.lastIndexOf('.') + 1);
-                            return { path: path, name: name, type: type };
-                        });
+                    allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '').map(path => ({
+                        path: path,
+                        name: path.substring(path.lastIndexOf('/') + 1).replace(/\.jar$/i, ''),
+                        type: path.substring(path.lastIndexOf('.') + 1)
+                    }));
                     applyFiltersAndRender();
                 } else if (xhr.readyState === 4) {
                     document.getElementById('file-list').innerHTML = '<li>Error: list.txt not found.</li>';
@@ -248,7 +232,7 @@
             xhr.send();
         }
 
-        // --- MODIFIED: Setup for Sort/Page controls (No Size option) ---
+        // --- MODIFIED: Setup includes 'None' option ---
         function setupControls() {
             const sortBySelect = document.getElementById('sort-by');
             const itemsPerPageSelect = document.getElementById('items-per-page');
@@ -256,12 +240,15 @@
             const prevPageBtn = document.getElementById('prev-page-btn');
             const nextPageBtn = document.getElementById('next-page-btn');
 
-            ['Name', 'Type'].forEach(function(val) { // "Size" option removed
+            ['None', 'Name', 'Type'].forEach(val => {
                 sortBySelect.add(new Option(val, val.toLowerCase()));
             });
-            [10, 20, 50].forEach(function(val) {
+            [10, 20, 50].forEach(val => {
                 itemsPerPageSelect.add(new Option(val, val));
             });
+
+            // Set the initial value of the dropdown to match the default state
+            sortBySelect.value = sortCriteria; 
 
             sortBySelect.onchange = function() { sortCriteria = this.value; applyFiltersAndRender(); };
             sortOrderBtn.onclick = function() {
@@ -275,11 +262,11 @@
         }
         
         function applyFiltersAndRender() {
-            // 1. Filter
+            // 1. Filter: This preserves the original order from list.txt
             const searchTerm = document.getElementById('search-box').value.toLowerCase();
             filteredFiles = allFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
             
-            // 2. Sort
+            // 2. Sort: This will now handle the 'none' case
             sortFiles();
 
             // 3. Render
@@ -287,9 +274,18 @@
             renderPage();
         }
 
-        // --- MODIFIED: Sorting Logic (No Size case) ---
+        // --- MODIFIED: Sorting logic now handles the 'none' case ---
         function sortFiles() {
-            filteredFiles.sort(function(a, b) {
+            // If 'none', the array is already in default order. We just need to reverse it if requested.
+            if (sortCriteria === 'none') {
+                if (sortOrder === 'desc') {
+                    filteredFiles.reverse();
+                }
+                return; // No further sorting needed
+            }
+
+            // Otherwise, perform the standard sort
+            filteredFiles.sort((a, b) => {
                 let valA, valB;
                 switch (sortCriteria) {
                     case 'type':
@@ -323,7 +319,7 @@
             const startIndex = (currentPage - 1) * itemsPerPage;
             const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
 
-            pageItems.forEach(function(file) {
+            pageItems.forEach(file => {
                 const listItem = document.createElement('li');
                 listItem.textContent = file.name;
                 listItem.setAttribute('data-path', file.path);
@@ -370,25 +366,22 @@
             });
         }
 
-        // --- KEYBOARD CONTROL ---
+        // --- KEYBOARD CONTROL (Unchanged) ---
         function handleKeyDown(event) {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'].includes(event.key)) {
                 event.preventDefault();
             }
-
             if (currentFocus === 'modal') {
                  if (event.key === 'Enter' || event.key === 'Backspace') closeExtractionModal();
                  return;
             }
-            
             const currentControlIndex = focusableControls.indexOf(currentFocus);
-
             switch (event.key) {
                 case 'ArrowDown':
                     if (currentFocus === 'list') {
                         const listLength = document.getElementById('file-list').children.length;
                         if (listIndex < listLength - 1) listIndex++;
-                    } else { // In controls
+                    } else {
                         const nextIndex = currentControlIndex + 1;
                         if (nextIndex < focusableControls.length) {
                             currentFocus = focusableControls[nextIndex];
@@ -403,19 +396,15 @@
                         if (listIndex > 0) listIndex--;
                         else {
                             listIndex = -1;
-                            currentFocus = focusableControls[focusableControls.length - 1]; // Go to last control
+                            currentFocus = focusableControls[focusableControls.length - 1];
                         }
-                    } else { // In controls
+                    } else {
                         const prevIndex = currentControlIndex - 1;
                         if (prevIndex >= 0) currentFocus = focusableControls[prevIndex];
                     }
                     break;
-                case 'ArrowRight':
-                    if (currentFocus === 'list') changePage(1);
-                    break;
-                case 'ArrowLeft':
-                     if (currentFocus === 'list') changePage(-1);
-                    break;
+                case 'ArrowRight': if (currentFocus === 'list') changePage(1); break;
+                case 'ArrowLeft': if (currentFocus === 'list') changePage(-1); break;
                 case 'Enter':
                     if (currentFocus === 'list' && listIndex > -1) {
                         document.getElementById('file-list').children[listIndex]?.click();
@@ -423,16 +412,13 @@
                         document.getElementById('sort-order-btn').click();
                     }
                     break;
-                case 'Backspace':
-                    window.close();
-                    break;
+                case 'Backspace': window.close(); break;
             }
             updateSelection();
         }
 
         function updateSelection() {
             document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-
             if (currentFocus === 'list') {
                 document.getElementById('search-box').blur();
                 const listItems = document.getElementById('file-list').children;
@@ -460,8 +446,7 @@
             right.textContent = 'Exit';
 
             if (currentFocus === 'modal') {
-                center.textContent = 'CLOSE';
-                right.textContent = '';
+                center.textContent = 'CLOSE'; right.textContent = '';
             } else if (currentFocus === 'list') {
                 center.textContent = 'SELECT';
             } else if (currentFocus.includes('select')) {
@@ -473,10 +458,9 @@
             }
         }
 
-        // --- MODAL & EXTRACTION ---
+        // --- MODAL & EXTRACTION (Unchanged) ---
         function showExtractionModal(message, isError = false) { currentFocus = 'modal'; document.getElementById('modal-message').textContent = message; document.getElementById('extraction-modal').style.display = 'flex'; updateSoftkeys(); }
         function closeExtractionModal() { currentFocus = 'list'; document.getElementById('extraction-modal').style.display = 'none'; updateSelection(); }
-        
         function extractMidletClassName(zipUrl, callback) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', zipUrl, true);
