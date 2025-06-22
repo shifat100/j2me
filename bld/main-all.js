@@ -10738,7 +10738,7 @@ NokiaFileUILocalMsgConnection.prototype.sendMessageToServer = function (data, of
       var btnDone = el.querySelector("button.recommend");
       btnDone.disabled = true;
       var selectedFile = null;
-      fileInput.addEventListener("change", function () {
+      fileInput.addEventListener("input", function () {
         btnDone.disabled = false;
         selectedFile = this.files[0];
       });
