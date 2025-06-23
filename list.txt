@@ -10,5 +10,6 @@ jars/Asphalt Urban GT.jar
 jars/Asphalt 2 Urban GT.jar
 jars/Asphalt 6 Adrenaline.jar
 jars/Real Football 2010.jar
-jars/Real Football 2018.jar
+jars/Real Football 2012.jar
 jars/Bounce Tales.jar
+jars/Thor Dark World.jar
