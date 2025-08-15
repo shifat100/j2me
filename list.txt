@@ -14,3 +14,5 @@ jars/Real Football 2012.jar
 jars/Bounce Tales.jar
 jars/Thor Dark World.jar
 jars/Angry Birds Season.jar
+jars/Angry Birds Star Wars.jar
+jars/Angry Birds.jar
