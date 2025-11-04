@@ -1,517 +1,894 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>J2ME Game Launcher</title>
-    <!-- JSZip library is required for extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>
-        /* --- UI Optimized for 240x300 Screens --- */
-        :root {
-            --background-color: #1c1c1c;
-            --text-color: #ffffff;
-            --primary-color: #00aaff;
-            --highlight-color: #ffc400;
-            --softkey-bar-bg: #333333;
-            --list-item-bg: #2a2a2a;
-            --border-color: #444444;
-            --disabled-color: #555555;
-        }
+	<meta charset="utf-8">
+	<title>JAVA</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+	<script src="libs/encoding.js"></script>
+	<script type="text/javascript" src="config/default.js" defer></script>
+	<script type="text/javascript" src="config/runtests.js" defer></script>
+	<script type="text/javascript" src="config/build.js" defer></script>
+	<script type="text/javascript" src="config/urlparams.js" defer></script>
+	<script type="text/javascript" src="libs/promise-6.0.0.js" defer></script>
+	<script type="text/javascript" src="polyfill/IndexedDB-getAll-shim.js" defer></script>
+	<script type="text/javascript" src="libs/compiled-method-cache.js" defer></script>
+	<script type="text/javascript" src="bld/native.js" defer></script>
+	<script type="text/javascript" src="bld/j2me.js" defer></script>
+	<script type="text/javascript" src="bld/main-all.js" defer></script>
+	<script type="text/javascript" src="kaiads.v5.min.js" defer></script>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            font-size: 14px;
-        }
+	<style>
+		body {
+			padding: 30px 8px 30px 8px;
+			margin: 0px;
+		}
 
-        .main-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 5px;
-        }
+		* {
+			box-sizing: border-box;
+		}
 
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 1.1em;
-            margin: 0 0 5px 0;
-            text-transform: uppercase;
-        }
-        
-        .controls-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-            padding: 3px 5px;
-            background-color: var(--list-item-bg);
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .control-group label { font-size: 0.9em; font-weight: bold; }
-        .control-group select, .control-group button {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-size: 0.9em;
-        }
-        #sort-order-btn { font-weight: bold; width: 25px; text-align: center; }
+		a {
+			text-decoration: none;
+			color: #000;
+		}
 
-        #search-box {
-            width: 100%;
-            padding: 6px;
-            margin-bottom: 5px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--list-item-bg);
-            color: var(--text-color);
-            font-size: 1em;
-        }
-        
-        /* The .selected class is for keyboard navigation highlight */
-        #search-box.selected,
-        .control-group select.selected, .control-group button.selected {
-            border-color: var(--highlight-color);
-            outline: 2px solid var(--highlight-color);
-            outline-offset: -1px;
-        }
+		.header {
+			display: block;
+			width: 100%;
+			padding: 5px 0;
+			text-align: center;
+			font-size: 1em;
+			background-color: black;
+			color: #fff;
+			position: fixed;
+			top: 0;
+			left: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap
+		}
 
-        #file-list { list-style-type: none; padding: 0; margin: 0; }
-        #file-list li {
-            padding: 10px 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--list-item-bg);
-            margin-bottom: 4px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        #file-list li.selected { background-color: var(--primary-color); color: var(--background-color); font-weight: bold; }
-        
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .pagination button {
-            background-color: var(--primary-color);
-            color: var(--background-color);
-            border: none;
-            padding: 4px 12px;
-            border-radius: 3px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .pagination button:disabled { background-color: var(--disabled-color); cursor: not-allowed; }
+		.footer {
+			width: 100%;
+			display: flex;
+			text-align: center;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			background-color: black;
+		}
 
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background-color: var(--list-item-bg); padding: 20px; border: 1px solid var(--border-color);
-            width: 85%; text-align: center; border-radius: 4px;
-        }
+		.footerelement {
+			display: inline-block;
+			width: 33%;
+			font-size: 1em;
+			font-weight: bold;
+			color: #fff;
+			padding: 5px 0;
+			text-align: center;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap
+		}
 
-        .softkey-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background-color: var(--softkey-bar-bg);
-            color: var(--text-color); display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; font-size: 0.9em; font-weight: bold; text-transform: uppercase;
-        }
-        .softkey-center { color: var(--highlight-color); }
-    </style>
+		.game {
+			text-align: center;
+			border: 3px solid transparent;
+			margin-right: 10px;
+			padding: 0px;
+			border-radius: 5px;
+			text-align: center;
+			margin-top: 10px;
+			outline-width: 1px;
+			outline-color: silver;
+			outline-style: solid;
+			font-size: 15px;
+			padding: 0px;
+			width: 63px;
+		}
+
+		.game:focus {
+			outline-color: transparent;
+			border: 3px solid rgb(0, 0, 0);
+		}
+
+		.game>.version {
+			padding: 0px 15px
+		}
+
+		.game:focus>.version {
+			background: linear-gradient(#000, #555, #000);
+			color: white;
+		}
+
+
+		.menubar {
+			position: fixed;
+			width: 60%;
+			background-color: black;
+			left: 0;
+			bottom: 31px
+		}
+
+		.menuelement {
+			width: 100%;
+			color: white;
+			border: 1px solid #000;
+			padding: 5px 3px;
+			font-size: 15px
+		}
+
+		.menuelement:hover,
+		.menuelement:focus {
+			background-color: white;
+			color: #000;
+			cursor: pointer
+		}
+
+
+		.screeninput {
+			display: inline-block;
+			width: 40%;
+			padding: 5px;
+			margin: 5px;
+			border: 2px solid #ccc;
+			border-radius: 5px;
+			color: black;
+		}
+
+		.screeninput:hover,
+		.screeninput:focus {
+			background: #8bdcff;
+		}
+	</style>
 </head>
+
 <body>
-<script>(function(s){s.dataset.zone='10089094',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <div class="main-content">
-        <h1>J2ME Launcher</h1>
-        <div class="controls-container">
-            <div class="control-group">
-                <label for="sort-by">Sort:</label>
-                <select id="sort-by"></select>
-                <button id="sort-order-btn">↑</button>
-            </div>
-            <div class="control-group">
-                <label for="items-per-page">Show:</label>
-                <select id="items-per-page"></select>
-            </div>
-        </div>
-        <input type="text" id="search-box" oninput="applyFiltersAndRender()" placeholder="Search...">
-        <div id="pagination" class="pagination">
-            <button id="prev-page-btn">< Prev</button>
-            <span id="page-info"></span>
-            <button id="next-page-btn">Next ></button>
-        </div>
-        <ul id="file-list"></ul>
-    </div>
+	<div class="header">Installed Files</div>
+	<div class="content">
+		<div id="pageContainer" style="display: none;">
+			<pre id="consoleContainer"></pre>
+			<div id="profilerContainer">
+				<div id="profilerToolbar">
+					<div class="toolbarLabel">Profiler <span id="profilerMessage" class="toolbarMessage">6
+							Seconds</span></div>
+					<div id="profilerButtons">
+						<div id="profilerStartStop">Start</div>
+						<div id="profilerAdjustHeight">Height</div>
+					</div>
+				</div>
+				<div id="profiler">
+					<div id="profileList">
+					</div>
+					<div id="profilePanel">
+					</div>
+				</div>
+			</div>
+		</div>
 
-    <div id="extraction-modal" class="modal">
-        <div class="modal-content"><p id="modal-message">Extracting MIDlet...</p></div>
-    </div>
 
-    <div class="softkey-bar">
-        <span id="softkey-left"></span>
-        <span id="softkey-center" class="softkey-center"></span>
-        <span id="softkey-right"></span>
-    </div>
+		<pre id="raw-console" style="display: none"></pre>
 
-    <script>
-        // --- GLOBAL STATE ---
-        var allFiles = []; 
-        var filteredFiles = [];
-        var currentPage = 1;
-        var itemsPerPage = 10;
-        var sortCriteria = 'none'; 
-        var sortOrder = 'asc';
+		<div id="display-container" style="display: none;">
+			<div id="display">
+				<section id="sidebar" data-type="sidebar" style="display:none">
+					<header>
+						<h1>Menu</h1>
+					</header>
+					<nav>
+						<ul>
+						</ul>
+					</nav>
+				</section>
+				<section id="drawer" role="region">
+					<header style="display:none">
+						<a href="#"><span class="icon icon-menu">hide sidebar</span></a>
+						<a id="header-drawer-button" href="#drawer"><span class="icon icon-menu">show sidebar</span></a>
+						<menu id="header-ok-button" type="toolbar" style="display:none"><button>√</button></menu>
+						<h1 id="display_title"></h1>
+					</header>
+					<div id="main" role="main">
+						<canvas id="canvas" style="max-width: 100%; max-height: 100%;"></canvas>
+						<input id="password-editor" class="text-editor" type="password">
+						<input id="tel-editor" class="text-editor" type="tel">
+						<input id="number-editor" class="text-editor" type="number">
+						<input id="email-editor" class="text-editor" type="email">
+						<input id="url-editor" class="text-editor" type="url">
+						<div id="textarea-editor" class="text-editor" contenteditable="true"></div>
+						<div id="hidden-textarea-editor" class="text-editor"></div>
+						<button id="back-button">Back</button>
+					</div>
+				</section>
 
-        // --- KAIOS KEYBOARD STATE ---
-        var listIndex = -1; 
-        var currentFocus = 'search-box';
-        const focusableControls = ['search-box', 'sort-by', 'sort-order-btn', 'items-per-page'];
+				<div id="gamepad" onselectstart='return false' onselect='document.selection.empty()'>
+					<div id="padcontent">
+						<button>1</button>
+						<button>2</button>
+						<button>3</button>
+						<button>L</button>
+						<div></div>
+						<button>R</button>
+					</div>
+					<div id="padcontent">
+						<button>4</button>
+						<button>5</button>
+						<button>6</button>
+						<div></div>
+						<button>up</button>
+					</div>
+					<div id="padcontent">
+						<button>7</button>
+						<button>8</button>
+						<button>9</button>
+						<button>left</button>
+						<button>OK</button>
+						<button>right</button>
+					</div>
+					<div id="padcontent">
+						<button>*</button>
+						<button>0</button>
+						<button>#</button>
+						<div></div>
+						<button>down</button>
+					</div>
+				</div>
 
-        // --- HELPER FUNCTIONS ---
-        function gup(name) {
-          var regex = new RegExp('[?&]' + encodeURIComponent(name) + '=([^&#]*)');
-          var results = regex.exec(window.location.href);
-          return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
-        }
+				<div id="download-screen" class="screen">
+					<h1 class="title">Loading ...</h1>
+					<div class="download-progress-container">
+						<progress class="pack-activity" value="0" max="100"></progress>
+					</div>
+				</div>
 
-        // --- Function to check if the device is a CloudFone ---
-        function isCloudPhone() {
-            // Allows forcing CloudFone mode via URL for testing (e.g., page.html?iscloudfone=true)
-            if (gup('iscloudfone') === 'true') {
-                return true;
-            }
-            const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
-            // The actual user agent string for CloudFone devices.
-            return normalizedUserAgent.includes('cloudphone');
-        }
+				<div id="splash-screen" class="screen">
+					<h1 class="title">Starting midlet…</h1>
+					<div class="splash-progress-container">
+						<progress></progress>
+					</div>
+				</div>
 
-        // --- CORE LOGIC ---
-        window.onload = () => {
-            setupControls();
-            fetchFileList();
+				<div id="exit-screen" class="screen">
+				</div>
 
-            // --- Conditionally add keyboard controls ---
-            if (!isCloudPhone()) {
-                // If it's NOT a CloudFone, enable full keyboard navigation.
-                window.addEventListener('keydown', handleKeyDown);
-            } else {
-                // If it IS a CloudFone, hide the softkey bar as it's not needed.
-                document.querySelector('.softkey-bar').style.display = 'none';
-            }
-            
-            updateSelection();
-        };
+				<div id="background-screen">
+				</div>
 
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                document.getElementById('extraction-modal').style.display = 'none';
-                document.getElementById('search-box').value = '';
-                applyFiltersAndRender();
-            }
-        });
+				<form role="dialog" data-type="confirm" class="lcdui-alert" id="lcdui-alert" style="display: none">
+					<section>
+						<h1 class="title"></h1>
+						<p class="text"></p>
+						<p style="border-top: 0"><progress style="display: none"></progress></p>
+					</section>
+					<menu>
+						<button class="button0" style="display: none"></button>
+						<button class="button1" style="display: none"></button>
+					</menu>
+				</form>
 
-        function fetchFileList() {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'list.txt', true); 
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '').map(path => ({
-                        path: path,
-                        name: path.substring(path.lastIndexOf('/') + 1).replace(/\.jar$/i, ''),
-                        type: path.substring(path.lastIndexOf('.') + 1)
-                    }));
-                    applyFiltersAndRender();
-                } else if (xhr.readyState === 4) {
-                    document.getElementById('file-list').innerHTML = '<li>Error: list.txt not found.</li>';
-                }
-            };
-            xhr.send();
-        }
+				<form role="dialog" data-type="confirm" class="sms-listener-prompt" id="sms-listener-prompt"
+					style="display: none">
+					<section>
+						<h1>SMS Verification</h1>
+						<p class="verificationText"></p>
+						<input type="text" placeholder="Type SMS Here">
+						<p class="timeLeft"></p>
+						<progress class="timeLeftBar" value="0" max="100"></progress>
+					</section>
+					<menu>
+						<button class="cancel">Cancel</button>
+						<button class="recommend">Done</button>
+					</menu>
+				</form>
 
-        function setupControls() {
-            const sortBySelect = document.getElementById('sort-by');
-            const itemsPerPageSelect = document.getElementById('items-per-page');
-            const sortOrderBtn = document.getElementById('sort-order-btn');
-            const prevPageBtn = document.getElementById('prev-page-btn');
-            const nextPageBtn = document.getElementById('next-page-btn');
+				<form role="dialog" data-type="confirm" class="nokia-fileui-prompt" id="nokia-fileui-prompt"
+					style="display: none">
+					<section>
+						<h1>Select a file</h1>
+						<p><input type="file" name="nokia-fileui-file">
+					</section>
+					<menu>
+						<button class="cancel">Cancel</button>
+						<button class="recommend">Done</button>
+					</menu>
+				</form>
 
-            ['None', 'Name', 'Type'].forEach(val => sortBySelect.add(new Option(val, val.toLowerCase())));
-            [10, 20, 50].forEach(val => itemsPerPageSelect.add(new Option(val, val)));
+				<form role="dialog" data-type="confirm" class="download-failure-dialog" id="download-failure-dialog"
+					style="display: none">
+					<section>
+						<h1 class="download-dialog-text">Download failure</h1>
+						<p>The download of midlet failed. Press <i>Retry</i> to try again.</p>
+					</section>
+					<menu>
+						<button class="recommend">Retry</button>
+					</menu>
+				</form>
+			</div>
+			<div id="settings">
+				<section>
+					<table id="counters">
+						<tr>
+							<td>Bytecode:</td>
+							<td><span id="bytecodeCount"></span></td>
+						</tr>
+						<tr>
+							<td>Compiled:</td>
+							<td><span id="compiledCount"></span></td>
+						</tr>
+						<tr>
+							<td>Interpreter:</td>
+							<td><span id="interpreterCount"></span></td>
+						</tr>
+						<tr>
+							<td>OSR:</td>
+							<td><span id="onStackReplacementCount"></span></td>
+						</tr>
+						<tr>
+							<td>Unwind:</td>
+							<td><span id="unwindCount"></span></td>
+						</tr>
+						<tr>
+							<td>Preemption:</td>
+							<td><span id="preemptionCount"></span></td>
+						</tr>
+					</table>
+				</section>
+				<section>
+					<select id="loglevel">
+						<option value="0">Log Level: Trace
+						<option value="1">Log Level: Log
+						<option value="2">Log Level: Info
+						<option value="3">Log Level: Warn
+						<option value="4">Log Level: Error
+						<option value="5">Log Level: Silent
+					</select>
+					<input id="console-filter-input" type="text" placeholder="Filter Console Output" value="">
+					<button id="console-clear">Clear console</button>
+					<button id="console-save">Save console</button>
+					<label><input type="checkbox" id="perfWriter">Perf</label>
+				</section>
+				<section>
+					<button id="exportstorage">Export File System</button>
+					<div>Import File System:</div>
+					<input type="file" id="importstoragefile">
+					<input type="text" id="importstorageurl" placeholder="URL to FS backup">
+					<button id="importstorage">Import</button>
+					<button id="clearCompiledMethodCache">Clear Compiled Method Cache</button>
+					<button id="deleteDatabases">Delete IDB Databases</button>
+					<button id="printAllExceptions">Print all exceptions: OFF</button>
+					<button id="clearCounters">Clear Counters</button>
+					<button id="dumpCounters">Dump Counters</button>
+					<button id="sampleCounters1">One sample for 1s</button>
+					<button id="sampleCounters2">One sample for 100ms (2s)</button>
+					<select id="canvasSize1">
+						<option value="" selected>Display size: 240x320</option>
+						<option value="size-320x240">Display size: 320x240</option>
+						<option value="size-320x480">Display size: 320x480</option>
+						<option value="size-480x320">Display size: 480x320</option>
+					</select>
+					<button id="start">Start</button>
 
-            sortBySelect.value = sortCriteria; 
+				</section>
+			</div>
+		</div>
+	</div>
+	<div class="menubar" style="display: none;" id="menubar">
+		<div class="menuelement" onclick="openLocalJar()" tabindex="0">Install</div>
+		<div class="menuelement" onclick="clearLocalJar()" tabindex="1">Uninstall All</div>
+		<div class="menuelement" tabindex="2" onclick="window.close();">Quit</div>
 
-            sortBySelect.onchange = function() { sortCriteria = this.value; applyFiltersAndRender(); };
-            sortOrderBtn.onclick = function() {
-                sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
-                this.innerHTML = (sortOrder === 'asc') ? '↑' : '↓';
-                applyFiltersAndRender();
-            };
-            itemsPerPageSelect.onchange = function() {
-                itemsPerPage = parseInt(this.value, 10);
-                currentPage = 1;
-                currentFocus = 'search-box';
-                renderPage();
-            };
-            prevPageBtn.onclick = changePage.bind(null, -1);
-            nextPageBtn.onclick = changePage.bind(null, 1);
-        }
-        
-        function applyFiltersAndRender() {
-            currentFocus = 'search-box'; 
-            const searchTerm = document.getElementById('search-box').value.toLowerCase();
-            filteredFiles = allFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
-            sortFiles();
-            currentPage = 1;
-            renderPage();
-        }
+	</div>
+	<div class="footer">
+		<div class="footerelement">Menu</div>
+		<div class="footerelement">OK</div>
+		<div class="footerelement">Exit</div>
+	</div>
 
-        function sortFiles() {
-            if (sortCriteria === 'none') {
-                if (sortOrder === 'desc') filteredFiles.reverse();
-                return;
-            }
-            filteredFiles.sort((a, b) => {
-                let valA, valB;
-                switch (sortCriteria) {
-                    case 'type': valA = a.type.toLowerCase(); valB = b.type.toLowerCase(); break;
-                    default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
-                }
-                let comparison = valA.localeCompare(valB);
-                return (sortOrder === 'asc') ? comparison : comparison * -1;
-            });
-        }
-        
-        function renderPage() {
-            const listElement = document.getElementById('file-list');
-            listElement.innerHTML = '';
+	<input id="jarFileupload" accept=".jar" multiple="true" type="file" style="visibility: hidden;display:none;" />
 
-            if (filteredFiles.length === 0) {
-                listElement.innerHTML = '<li>No files found.</li>';
-                renderPagination();
-                listIndex = -1;
-                updateSelection();
-                return;
-            }
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
+	<script type="text/javascript">
+		var header = document.getElementsByClassName('header')[0];
+		var f1 = document.querySelectorAll('.footerelement')[0];
+		var f2 = document.querySelectorAll('.footerelement')[1];
+		var f3 = document.querySelectorAll('.footerelement')[2];
+		var menubar = document.getElementById('menubar');
+		var tmpf3 = '';
+		var tmpf2 = '';
 
-            pageItems.forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.name;
-                listItem.setAttribute('data-path', file.path);
-                listItem.onclick = () => handleFileClick(file.path);
-                listElement.appendChild(listItem);
-            });
+		function openmenubar() {
+			tmpf3 = f3.innerHTML;
+			tmpf2 = f2.innerHTML;
+			document.getElementById('menubar').style.display = 'block';
+			document.querySelectorAll('.menuelement')[0].focus();
+			f1.innerHTML = '';
+			f2.innerHTML = 'OK';
+			f3.innerHTML = 'Back';
+			document.body.style.overflow = 'hidden';
+			document.body.removeEventListener('keydown', keydownlisterner);
+			document.body.addEventListener('keydown', keydownmenubar);
+		}
 
-            renderPagination();
-            listIndex = -1; 
-            updateSelection();
-        }
+		function closemenubar() {
+			document.body.style.overflow = 'scroll';
+			document.getElementById('menubar').style.display = 'none';
+			document.body.removeEventListener('keydown', keydownmenubar);
+			document.body.addEventListener('keydown', keydownlisterner);
+			f3.innerHTML = tmpf3;
+			f2.innerHTML = tmpf2;
+		}
 
-        function renderPagination() {
-            const pageInfo = document.getElementById('page-info');
-            const prevBtn = document.getElementById('prev-page-btn');
-            const nextBtn = document.getElementById('next-page-btn');
-            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+		function menubarroot(jarName = null, name = 'User Manual') {
+			menubar.innerHTML = '<div class="menuelement" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0">Run</div><div class="menuelement" onclick="openLocalJar()" tabindex="1">Install</div><div class="menuelement" onclick="clearLocalJar()" tabindex="2">Uninstall All</div><div class="menuelement" tabindex="3" onclick="window.close();">Quit</div>';
+			localStorage.setItem('focusedJar', jarName);
+			header.innerHTML = name;
+		}
+		function menubarnonroot(jarName = null, name = 'User Manual') {
+			menubar.innerHTML = '<div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){ openJar(localStorage.getItem(\'focusedJar\'), \'\', 1);} else{ alert(\'Please Select One First\');}" tabindex="0">Open</div><div class="menuelement" onclick="setLocalConfig()" tabindex="1">Set Config</div><div class="menuelement" onclick="openLocalJar()" tabindex="2">Install</div><div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){deleteLocalJar()} else{ alert(\'Please Select One First\');}" tabindex="3">Uninstall</div><div class="menuelement" onclick="clearLocalJar()" tabindex="4">Reset All</div><div class="menuelement" tabindex="5" onclick="window.close();">Quit</div>';
+			localStorage.setItem('focusedJar', jarName);
+			header.innerHTML = name;
+		}
 
-            pageInfo.textContent = (totalPages > 0) ? `Page ${currentPage} of ${totalPages}`: `Page 1 of 1`;
-            prevBtn.disabled = (currentPage <= 1);
-            nextBtn.disabled = (currentPage >= totalPages);
-        }
-        
-        function changePage(direction) {
-            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
-            const newPage = currentPage + direction;
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
-                if (!isCloudPhone()) { // Only change focus if keyboard controls are on
-                    currentFocus = 'list';
-                    listIndex = 0;
-                }
-                renderPageForPaging();
-            }
-        }
-        
-        function renderPageForPaging() {
-             const listElement = document.getElementById('file-list');
-             listElement.innerHTML = '';
-             const startIndex = (currentPage - 1) * itemsPerPage;
-             const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
-             pageItems.forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.name;
-                listItem.setAttribute('data-path', file.path);
-                listItem.onclick = () => handleFileClick(file.path);
-                listElement.appendChild(listItem);
-            });
-            renderPagination();
-            updateSelection();
-        }
+		function baseFileName(filename) {
+			if (!filename) return '';
+			var s = filename.split('/');
+			return s[s.length - 1];
+		}
 
-        function handleFileClick(filePath) {
-            showExtractionModal(`Extracting...`);
-            extractMidletClassName(filePath, (error, midletName) => {
-                if (error) {
-                    showExtractionModal(`Error: ${error.message}`, true);
-                } else {
-                    document.getElementById('extraction-modal').style.display = 'none';
-                    const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
-                    window.location.href = redirectUrl;
-                }
-            });
-        }
+		function setLocalConfig() {
+			var div = document.createElement('div');
+			div.id = 'localconfigbar';
+			div.innerHTML = '<div style="background: #ddd">Set Screen Size:</div><div style="color: white;"><input type="tel" class="screeninput" tabindex="0" value="0">x<input type="tel" class="screeninput" tabindex="1"  value="0"></div>';
+			div.style = "position: fixed;left: 37%;background-color: black;bottom: 105px;border: 2px solid rgb(221, 221, 221);margin-right: 5px;";
+			document.body.appendChild(div);
+			document.querySelector('.screeninput').focus();
+			f2.innerHTML = 'Save';
+			f1.innerHTML = '';
+			f3.innerHTML = 'Back';
+			document.body.removeEventListener('keydown', keydownmenubar);
+			document.body.addEventListener('keydown', keydownlocalconfig);
+		}
 
-        // --- KEYBOARD CONTROL (This function is now only called if !isCloudPhone()) ---
-        function handleKeyDown(event) {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'].includes(event.key)) {
-                event.preventDefault();
-            }
-            if (currentFocus === 'modal') {
-                 if (event.key === 'Enter' || event.key === 'Backspace') closeExtractionModal();
-                 return;
-            }
-            const currentControlIndex = focusableControls.indexOf(currentFocus);
-            switch (event.key) {
-                case 'ArrowDown':
-                    if (currentFocus === 'list') {
-                        const listLength = document.getElementById('file-list').children.length;
-                        if (listIndex < listLength - 1) listIndex++;
-                    } else {
-                        const nextIndex = currentControlIndex + 1;
-                        if (nextIndex < focusableControls.length) {
-                            currentFocus = focusableControls[nextIndex];
-                        } else if (filteredFiles.length > 0) {
-                            currentFocus = 'list';
-                            listIndex = 0;
-                        }
-                    }
-                    break;
-                case 'ArrowUp':
-                    if (currentFocus === 'list') {
-                        if (listIndex > 0) listIndex--;
-                        else {
-                            listIndex = -1;
-                            currentFocus = focusableControls[focusableControls.length - 1];
-                        }
-                    } else {
-                        const prevIndex = currentControlIndex - 1;
-                        if (prevIndex >= 0) currentFocus = focusableControls[prevIndex];
-                    }
-                    break;
-                case 'ArrowRight': if (currentFocus === 'list') changePage(1); break;
-                case 'ArrowLeft': if (currentFocus === 'list') changePage(-1); break;
-                case 'Enter':
-                    if (currentFocus === 'list' && listIndex > -1) {
-                        document.getElementById('file-list').children[listIndex]?.click();
-                    } else if (currentFocus === 'sort-order-btn') {
-                        document.getElementById('sort-order-btn').click();
-                    }
-                    break;
-                case 'Backspace': window.close(); break;
-            }
-            updateSelection();
-        }
+		function closeLocalConfig() {
+			f1.innerHTML = '';
+			f2.innerHTML = 'OK';
+			f3.innerHTML = 'Back';
+			var configBar = document.querySelector('#localconfigbar');
+			if (configBar) {
+				document.body.removeChild(configBar);
+			}
+			document.body.removeEventListener('keydown', keydownlocalconfig);
+			document.body.addEventListener('keydown', keydownmenubar);
+			document.querySelectorAll('.menuelement')[1].focus(); // Focus back on "Set Config"
+		}
 
-        function updateSelection() {
-            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-            
-            // If it's a CloudFone, do not show any selection highlight.
-            if (isCloudPhone()) {
-                document.getElementById('search-box').blur(); // Ensure cursor is not active by default
-                return;
-            }
 
-            // The rest of this function only runs if keyboard controls are enabled.
-            if (currentFocus === 'list') {
-                document.getElementById('search-box').blur();
-                const listItems = document.getElementById('file-list').children;
-                if (listIndex > -1 && listItems[listIndex]) {
-                    const selectedItem = listItems[listIndex];
-                    selectedItem.classList.add('selected');
-                    selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }
-            } else {
-                const focusedControl = document.getElementById(currentFocus);
-                if (focusedControl) {
-                    focusedControl.classList.add('selected');
-                    if (currentFocus === 'search-box') focusedControl.focus();
-                }
-            }
-            updateSoftkeys();
-        }
+		function processLocalJAD(data) {
+			var manifest = {};
+			data.replace(/\r\n|\r/g, "\n").replace(/\n /g, "").split("\n").forEach(function (entry) {
+				if (entry) {
+					var keyEnd = entry.indexOf(":");
+					var key = entry.substring(0, keyEnd);
+					var val = entry.substring(keyEnd + 1).trim();
+					manifest[key] = val;
+				}
+			});
 
-        function updateSoftkeys() {
-            const left = document.getElementById('softkey-left'), center = document.getElementById('softkey-center'), right = document.getElementById('softkey-right');
-            left.textContent = ''; right.textContent = 'Exit';
-            if (currentFocus === 'modal') {
-                center.textContent = 'CLOSE'; right.textContent = '';
-            } else if (currentFocus === 'list') {
-                center.textContent = 'SELECT';
-            } else if (currentFocus.includes('select')) {
-                center.textContent = 'CHANGE';
-            } else if (currentFocus === 'sort-order-btn') {
-                 center.textContent = 'TOGGLE';
-            } else {
-                center.textContent = '';
-            }
-        }
-        
-        function showExtractionModal(message, isError = false) {
-            currentFocus = 'modal';
-            if(isCloudPhone()) currentFocus = null; // No focus in modal on cloudfone
-            document.getElementById('modal-message').textContent = message;
-            document.getElementById('extraction-modal').style.display = 'flex';
-            if(!isCloudPhone()) updateSoftkeys();
-        }
-        
-        function closeExtractionModal() {
-            currentFocus = 'search-box';
-            document.getElementById('extraction-modal').style.display = 'none';
-            updateSelection();
-        }
-        
-        function extractMidletClassName(zipUrl, callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', zipUrl, true);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    JSZip.loadAsync(xhr.response).then(zip => zip.file("META-INF/MANIFEST.MF")?.async("string")).then(content => {
-                        if (!content) return callback(new Error("MANIFEST.MF not found or empty."), null);
-                        const midletLine = content.split(/\r?\n/).find(line => line.match(/^MIDlet-\d+:/));
-                        if (!midletLine) return callback(new Error("MIDlet-N not found."), null);
-                        const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
-                        if (parts.length < 3) return callback(new Error("Malformed MIDlet line."), null);
-                        callback(null, parts[parts.length - 1].trim());
-                    }).catch(err => callback(err, null));
-                } else {
-                    callback(new Error(`Fetch failed (Status: ${xhr.status})`), null);
-                }
-            };
-            xhr.onerror = () => callback(new Error("Network error."), null);
-            xhr.send();
-        }
-    </script>
+			return manifest;
+		}
+
+		function refreshGameList() {
+			JARStore.getAll().then(
+				(files) => {
+					var applist = document.getElementById('gamepanel');
+					var listapp = ['<a class="game focusable" href="javascript:void(0)" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0" data-name="User Manual" onfocus="menubarroot();"> <div style="height:64px;"> <img src="img/ftu.png" width="50px" height="50px"></img> </div> <div class="version">Help</div></a>'];
+					
+					for (var i = 0; i < files.length; i++) {
+						var res = files[i];
+						var name = baseFileName(res.jarName); // Default name
+						var jarVersion = 'N/A';
+						var url = 'java.png'; // Default icon
+
+						try {
+							var mffile = res.jar['META-INF/MANIFEST.MF'];
+							var mfdata = '';
+							if (!mffile) throw new Error("MANIFEST.MF not found");
+
+							switch (mffile.compression_method) {
+								case 0:
+									mfdata = mffile.compressed_data;
+									break;
+								case 8:
+									mfdata = inflate(mffile.compressed_data, mffile.uncompressed_len);
+									break;
+								default:
+								    throw new Error("Unsupported compression method for MANIFEST.MF");
+							}
+
+							mfdata = new TextDecoder('utf-8').decode(mfdata);
+							var dts = processLocalJAD(mfdata);
+							var midletInfo = dts['MIDlet-1'];
+							jarVersion = dts['MIDlet-Version'] || 'N/A';
+							
+							var a = midletInfo.split(',');
+							name = a[0].trim();
+							
+							var jariconPath = a[1].trim();
+							if (jariconPath.startsWith("/")) {
+								jariconPath = jariconPath.substring(1);
+							}
+							
+							var iconfile = res.jar[jariconPath] || res.jar[dts['MIDlet-Icon'] ? dts['MIDlet-Icon'].trim() : ''];
+							if (iconfile) {
+								var iconfiledata;
+								switch (iconfile.compression_method) {
+									case 0:
+										iconfiledata = iconfile.compressed_data;
+										break;
+									case 8:
+										iconfiledata = new Uint8Array(inflate(iconfile.compressed_data, iconfile.uncompressed_len));
+										break;
+								}
+								if(iconfiledata){
+									var blob = new Blob([iconfiledata], { type: "image/png" });
+									url = URL.createObjectURL(blob);
+								}
+							}
+							
+						} catch (err) {
+							console.error("Error processing JAR " + res.jarName + ":", err);
+						}
+
+						listapp.push(`<a class="game focusable" tabindex="${i + 1}" href="javascript:void(0)" onclick="openJar('${res.jarName}', 0, 1);" data-name="${name}" data-jarName="${res.jarName}" onfocus="menubarnonroot(this.getAttribute('data-jarName'), this.getAttribute('data-name'));"> <div style="height:64px;"> <center><img width="50px" height="50px" src="${url}" onerror="this.src='java.png'"></center> </div><div class="version">${jarVersion}</div></a>`);
+					}
+					applist.innerHTML = listapp.join('');
+				},
+				(err) => {
+					alert(err);
+				}
+			);
+		}
+
+		function alertSuccess(successcount, failcount) {
+			alert('Installation completed, success ' + successcount + ', failure ' + failcount + '.');
+		}
+
+		function deleteLocalJar() {
+			closemenubar();
+			const focusedJar = localStorage.getItem('focusedJar');
+			if (!focusedJar || focusedJar === 'null') {
+				alert('Please select a game to uninstall.');
+				return;
+			}
+			var res = confirm('Uninstall ' + baseFileName(focusedJar) + '?');
+			if (res) {
+				JARStore.deleteJar(focusedJar).then(
+					() => {
+						alert(baseFileName(focusedJar) + ' removed!');
+						localStorage.removeItem('focusedJar');
+						refreshGameList();
+					},
+					(errname) => {
+						alert('Deletion failed: ' + errname);
+					}
+				);
+			}
+		}
+
+		function clearLocalJar() {
+			closemenubar();
+			var res = confirm('All installed JAR files will be cleared. Are you sure?');
+			if (res) {
+				JARStore.clear().then(
+					() => {
+						alert('All JARs cleared!');
+						refreshGameList();
+					},
+					(err) => {
+						alert('Could not clear JARs: ' + err);
+					}
+				);
+			}
+		}
+
+		var onUploadFile = function (e) {
+			closemenubar();
+			const _files = e.target.files;
+			if (_files.length == 0) return;
+
+			var successcount = 0;
+			var failcount = 0;
+			var allcount = _files.length;
+			var processedCount = 0;
+
+			for (var i = 0; i < _files.length; i++) {
+				const _file = _files[i];
+				if (!_file.name.toLowerCase().endsWith('.jar')) {
+					failcount++;
+					processedCount++;
+					if(processedCount === allcount) alertSuccess(successcount, failcount);
+					continue;
+				}
+				const reader = new FileReader();
+				reader.readAsArrayBuffer(_file);
+				reader.onload = function (readRes) {
+					JARStore.installJAR(_file.name, readRes.target.result).then(
+						() => {
+							successcount++;
+							processedCount++;
+							if (processedCount === allcount) {
+								alertSuccess(successcount, failcount);
+								refreshGameList();
+							}
+						},
+						(errname) => {
+							failcount++;
+							processedCount++;
+							if (processedCount === allcount) {
+								alertSuccess(successcount, failcount);
+								refreshGameList();
+							}
+						}
+					);
+					document.getElementById('jarFileupload').value = null;
+				}
+			}
+		}
+		
+		window.addEventListener('load', () => {
+			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
+			refreshGameList();
+			
+			// Set up activity handler for opening files
+			if ('mozSetMessageHandler' in navigator) {
+				navigator.mozSetMessageHandler('activity', function (activityReq) {
+					var _file = activityReq.source.data.blob;
+					if (!_file) return;
+
+					var reader = new FileReader();
+					reader.readAsArrayBuffer(_file);
+					reader.onload = function (readRes) {
+						JARStore.installJAR(_file.name, readRes.target.result).then(
+							() => {
+								alertSuccess(1, 0);
+								refreshGameList();
+							},
+							(errname) => {
+								alertSuccess(0, 1);
+								console.error("Install failed: ", errname);
+							}
+						);
+					}
+				});
+			}
+		});
+
+		function openLocalJar() {
+			closemenubar();
+			document.getElementById('jarFileupload').click();
+		}
+
+		function openJar(jarname, midletClassName, islocaljar) {
+			closemenubar();
+
+			var href = 'main.html?jars=jar/' + jarname + '&jad=&midletClassName=' + midletClassName;
+			if (islocaljar) {
+				href = 'main.html?localjar=' + jarname;
+			}
+			
+			href += '&gamepad=0';
+
+			const focusedJar = localStorage.getItem('focusedJar');
+			const customSize = focusedJar ? localStorage.getItem(focusedJar) : null;
+			
+			if (customSize) {
+				href += '&canvasSize=size-' + customSize;
+			} else {
+				href += '&canvasSize=size-no';
+			}
+
+			// The gameresize dropdown is hidden, so we hardcode a default or remove it.
+			// Let's assume 'resize-1' (None) is the desired default.
+			href += '&gameresize=resize-1';
+			
+			window.location.href = href;
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			if (typeof getKaiAd === 'function') {
+				getKaiAd({
+					publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+					app: 'java',
+					slot: 'java',
+					onerror: (err) => console.error('KaiAd Error:', err),
+					onready: (ad) => {
+						ad.call('display');
+					},
+				});
+			}
+		});
+
+		document.body.addEventListener('keyup', (e) => {
+			// Trigger ads on interaction, but avoid doing it for every single key press
+			if (e.key === 'Enter' || e.key === 'SoftLeft' || e.key === 'SoftRight') {
+				if (typeof getKaiAd === 'function') {
+					getKaiAd({
+						publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+						app: 'java',
+						slot: 'java',
+						onerror: (err) => console.error('KaiAd Error:', err),
+						onready: (ad) => {
+							ad.call('display');
+						},
+					});
+				}
+			}
+		});
+	</script>
+	<div style="display:flex;flex-wrap: wrap; margin: 10px 0px;float:left;align-items: center;" id="gamepanel">
+	</div>
+
+	<!-- Hidden config elements from a previous version -->
+	<div style="margin-top: 100px; clear: both;display: none;">
+		<select id="canvasSize">
+			<option value="size-no" selected>Display size: Any</option>
+		</select>
+		<select id="gamepadSize">
+			<option value="gamepad-0" selected>Virtual Keyboard - None</option>
+		</select>
+		<select id="gameresize">
+			<option value="resize-1" selected>None</option>
+		</select>
+	</div>
+
+
+	<script>
+		/**
+		 * A robust function to handle focus navigation on a list of elements.
+		 * @param {number} move - The direction and number of steps to move (e.g., 1, -1, 3, -3).
+		 * @param {string} selector - The CSS selector for the focusable items.
+		 */
+		function robustFocus(move, selector) {
+			const items = document.querySelectorAll(selector);
+			if (items.length === 0) return;
+
+			var currentIndex = -1;
+			for (var i = 0; i < items.length; i++) {
+				if (items[i] === document.activeElement) {
+					currentIndex = i;
+					break;
+				}
+			}
+
+			if (currentIndex === -1) {
+				currentIndex = (move > 0) ? -1 : 0;
+			}
+
+			var nextIndex = currentIndex + move;
+
+			// Boundary checks and wrap-around
+			if (nextIndex >= items.length) {
+				nextIndex = items.length - 1; // Stop at the end
+				// Or to wrap around: nextIndex = nextIndex % items.length;
+			}
+			if (nextIndex < 0) {
+				nextIndex = 0; // Stop at the beginning
+				// Or to wrap around: nextIndex = items.length - 1;
+			}
+			
+			const targetElement = items[nextIndex];
+			if (targetElement) {
+				targetElement.focus();
+				// Scrolling into view is important for long lists
+				if(selector === '.focusable') {
+					targetElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+				}
+			}
+		}
+
+
+		// Keydown listener for the main game grid view
+		function keydownlisterner(e) {
+			switch (e.key) {
+				case 'ArrowUp':
+					robustFocus(-3, '.focusable');
+					e.preventDefault();
+					break;
+				case 'ArrowDown':
+					robustFocus(3, '.focusable');
+					e.preventDefault();
+					break;
+				case 'ArrowLeft':
+					robustFocus(-1, '.focusable');
+					e.preventDefault();
+					break;
+				case 'ArrowRight':
+					robustFocus(1, '.focusable');
+					e.preventDefault();
+					break;
+				case 'Enter':
+					if(document.activeElement && typeof document.activeElement.click === 'function') {
+						document.activeElement.click();
+					}
+					break;
+				case 'SoftRight':
+				case 'Backspace': // Handle Backspace as an exit key
+					localStorage.removeItem('focusedJar');
+					window.close();
+					break;
+				case 'SoftLeft': case 'F1':
+					openmenubar();
+					break;
+			}
+		}
+
+		// Keydown listener when the side menu is open
+		function keydownmenubar(e) {
+			switch (e.key) {
+				case 'ArrowUp':
+					robustFocus(-1, '.menuelement');
+					e.preventDefault();
+					break;
+				case 'ArrowDown':
+					robustFocus(1, '.menuelement');
+					e.preventDefault();
+					break;
+				case 'Enter':
+					if(document.activeElement && typeof document.activeElement.click === 'function') {
+						document.activeElement.click();
+					}
+					break;
+				case 'SoftRight':
+				case 'Backspace':
+					closemenubar();
+					break;
+			}
+		}
+
+		// Keydown listener for the custom screen size config dialog
+		function keydownlocalconfig(e) {
+			const inputs = document.querySelectorAll('.screeninput');
+			switch (e.key) {
+				case 'ArrowUp':
+				case 'ArrowLeft':
+					inputs[0].focus();
+					break;
+				case 'ArrowDown':
+				case 'ArrowRight':
+					inputs[1].focus();
+					break;
+				case 'Enter':
+					var w = inputs[0].value.trim();
+					var h = inputs[1].value.trim();
+					var w_int = parseInt(w, 10);
+					var h_int = parseInt(h, 10);
+
+					if (w === '' || h === '' || isNaN(w_int) || isNaN(h_int) || w_int <= 0 || h_int <= 0) {
+						if (confirm('This will remove the custom screen size. Continue?')) {
+							localStorage.removeItem(localStorage.getItem('focusedJar'));
+							alert('Custom size removed.');
+							closeLocalConfig();
+						} else {
+							alert('Please enter valid, non-zero numbers for width and height.');
+						}
+					} else {
+						localStorage.setItem(localStorage.getItem('focusedJar'), w + 'x' + h);
+						alert('Screen size set to ' + w + 'x' + h);
+						closeLocalConfig();
+					}
+					break;
+				case 'SoftRight':
+				case 'Backspace':
+					closeLocalConfig();
+					break;
+			}
+		}
+		
+		// Attach the initial event listener
+		document.body.addEventListener('keydown', keydownlisterner);
+
+	</script>
 </body>
-  </html>
+
+</html>
