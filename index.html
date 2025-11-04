@@ -17,7 +17,7 @@
 	<script type="text/javascript" src="bld/native.js" defer></script>
 	<script type="text/javascript" src="bld/j2me.js" defer></script>
 	<script type="text/javascript" src="bld/main-all.js" defer></script>
-	<script type="text/javascript" src="kaiads.v5.min.js" defer></script>
+	
 
 	<style>
 		body {
@@ -695,36 +695,8 @@
 			window.location.href = href;
 		}
 
-		document.addEventListener('DOMContentLoaded', () => {
-			if (typeof getKaiAd === 'function') {
-				getKaiAd({
-					publisher: '080b82ab-b33a-4763-a498-50f464567e49',
-					app: 'java',
-					slot: 'java',
-					onerror: (err) => console.error('KaiAd Error:', err),
-					onready: (ad) => {
-						ad.call('display');
-					},
-				});
-			}
-		});
-
-		document.body.addEventListener('keyup', (e) => {
-			// Trigger ads on interaction, but avoid doing it for every single key press
-			if (e.key === 'Enter' || e.key === 'SoftLeft' || e.key === 'SoftRight') {
-				if (typeof getKaiAd === 'function') {
-					getKaiAd({
-						publisher: '080b82ab-b33a-4763-a498-50f464567e49',
-						app: 'java',
-						slot: 'java',
-						onerror: (err) => console.error('KaiAd Error:', err),
-						onready: (ad) => {
-							ad.call('display');
-						},
-					});
-				}
-			}
-		});
+	
+		
 	</script>
 	<div style="display:flex;flex-wrap: wrap; margin: 10px 0px;float:left;align-items: center;" id="gamepanel">
 	</div>
@@ -817,10 +789,15 @@
 					localStorage.removeItem('focusedJar');
 					window.close();
 					break;
-				case 'SoftLeft': case 'F1':
+				case 'SoftLeft': case 'Escape': case 'F1':
 					openmenubar();
 					break;
 			}
+			window.addEventListener("back", (event) => {
+  event.preventDefault();
+  	localStorage.removeItem('focusedJar');
+					window.close();
+});
 		}
 
 		// Keydown listener when the side menu is open
@@ -844,6 +821,10 @@
 					closemenubar();
 					break;
 			}
+			window.addEventListener("back", (event) => {
+  event.preventDefault();
+ closemenubar();
+});
 		}
 
 		// Keydown listener for the custom screen size config dialog
