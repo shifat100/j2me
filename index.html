@@ -421,12 +421,12 @@
 		}
 
 		function menubarroot(jarName = null, name = 'User Manual') {
-			menubar.innerHTML = '<div class="menuelement" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0">Run</div><div class="menuelement" onclick="openLocalJar()" tabindex="1">Install</div><div class="menuelement" tabindex="2" onclick="window.location.href='store.html';">Store</div><div class="menuelement" onclick="clearLocalJar()" tabindex="3">Uninstall All</div><div class="menuelement" tabindex="4" onclick="window.close();">Quit</div>';
+			menubar.innerHTML = '<div class="menuelement" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0">Run</div><div class="menuelement" onclick="openLocalJar()" tabindex="1">Install</div><div class="menuelement" tabindex="2" onclick="window.location.href=\'store.html\';">Store</div><div class="menuelement" onclick="clearLocalJar()" tabindex="3">Uninstall All</div><div class="menuelement" tabindex="4" onclick="window.close();">Quit</div>';
 			localStorage.setItem('focusedJar', jarName);
 			header.innerHTML = name;
 		}
 		function menubarnonroot(jarName = null, name = 'User Manual') {
-			menubar.innerHTML = '<div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){ openJar(localStorage.getItem(\'focusedJar\'), \'\', 1);} else{ alert(\'Please Select One First\');}" tabindex="0">Open</div><div class="menuelement" onclick="setLocalConfig()" tabindex="1">Set Config</div><div class="menuelement" onclick="openLocalJar()" tabindex="2">Install</div><div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){deleteLocalJar()} else{ alert(\'Please Select One First\');}" tabindex="3">Uninstall</div><div class="menuelement" tabindex="4" onclick="window.location.href='store.html';">Store</div><div class="menuelement" onclick="clearLocalJar()" tabindex="5">Reset All</div><div class="menuelement" tabindex="6" onclick="window.close();">Quit</div>';
+			menubar.innerHTML = '<div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){ openJar(localStorage.getItem(\'focusedJar\'), \'\', 1);} else{ alert(\'Please Select One First\');}" tabindex="0">Open</div><div class="menuelement" onclick="setLocalConfig()" tabindex="1">Set Config</div><div class="menuelement" onclick="openLocalJar()" tabindex="2">Install</div><div class="menuelement" onclick="if(localStorage.getItem(\'focusedJar\') != \'\'){deleteLocalJar()} else{ alert(\'Please Select One First\');}" tabindex="3">Uninstall</div><div class="menuelement" tabindex="4" onclick="window.location.href=\'store.html\';">Store</div><div class="menuelement" onclick="clearLocalJar()" tabindex="5">Reset All</div><div class="menuelement" tabindex="6" onclick="window.close();">Quit</div>';
 			localStorage.setItem('focusedJar', jarName);
 			header.innerHTML = name;
 		}
