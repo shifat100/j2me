@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>J2ME Game Launcher</title>
+    <!-- JSZip library is required for extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* --- UI Optimized for 240x300 Screens --- */
+        :root {
+            --background-color: #1c1c1c;
+            --text-color: #ffffff;
+            --primary-color: #00aaff;
+            --highlight-color: #ffc400;
+            --softkey-bar-bg: #333333;
+            --list-item-bg: #2a2a2a;
+            --border-color: #444444;
+            --disabled-color: #555555;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.1em;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+        
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            padding: 3px 5px;
+            background-color: var(--list-item-bg);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .control-group label { font-size: 0.9em; font-weight: bold; }
+        .control-group select, .control-group button {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 0.9em;
+        }
+        #sort-order-btn { font-weight: bold; width: 25px; text-align: center; }
+
+        #search-box {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--list-item-bg);
+            color: var(--text-color);
+            font-size: 1em;
+        }
+        
+        /* The .selected class is for keyboard navigation highlight */
+        #search-box.selected,
+        .control-group select.selected, .control-group button.selected {
+            border-color: var(--highlight-color);
+            outline: 2px solid var(--highlight-color);
+            outline-offset: -1px;
+        }
+
+        #file-list { list-style-type: none; padding: 0; margin: 0; }
+        #file-list li {
+            padding: 10px 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--list-item-bg);
+            margin-bottom: 4px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        #file-list li.selected { background-color: var(--primary-color); color: var(--background-color); font-weight: bold; }
+        
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .pagination button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .pagination button:disabled { background-color: var(--disabled-color); cursor: not-allowed; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--list-item-bg); padding: 20px; border: 1px solid var(--border-color);
+            width: 85%; text-align: center; border-radius: 4px;
+        }
+
+        .softkey-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background-color: var(--softkey-bar-bg);
+            color: var(--text-color); display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; font-size: 0.9em; font-weight: bold; text-transform: uppercase;
+        }
+        .softkey-center { color: var(--highlight-color); }
+    </style>
+</head>
+<body>
+<script>(function(s){s.dataset.zone='10089094',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <div class="main-content">
+        <h1>J2ME Launcher</h1>
+        <div class="controls-container">
+            <div class="control-group">
+                <label for="sort-by">Sort:</label>
+                <select id="sort-by"></select>
+                <button id="sort-order-btn">↑</button>
+            </div>
+            <div class="control-group">
+                <label for="items-per-page">Show:</label>
+                <select id="items-per-page"></select>
+            </div>
+        </div>
+        <input type="text" id="search-box" oninput="applyFiltersAndRender()" placeholder="Search...">
+        <div id="pagination" class="pagination">
+            <button id="prev-page-btn">< Prev</button>
+            <span id="page-info"></span>
+            <button id="next-page-btn">Next ></button>
+        </div>
+        <ul id="file-list"></ul>
+    </div>
+
+    <div id="extraction-modal" class="modal">
+        <div class="modal-content"><p id="modal-message">Extracting MIDlet...</p></div>
+    </div>
+
+    <div class="softkey-bar">
+        <span id="softkey-left"></span>
+        <span id="softkey-center" class="softkey-center"></span>
+        <span id="softkey-right"></span>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        var allFiles = []; 
+        var filteredFiles = [];
+        var currentPage = 1;
+        var itemsPerPage = 10;
+        var sortCriteria = 'none'; 
+        var sortOrder = 'asc';
+
+        // --- KAIOS KEYBOARD STATE ---
+        var listIndex = -1; 
+        var currentFocus = 'search-box';
+        const focusableControls = ['search-box', 'sort-by', 'sort-order-btn', 'items-per-page'];
+
+        // --- HELPER FUNCTIONS ---
+        function gup(name) {
+          var regex = new RegExp('[?&]' + encodeURIComponent(name) + '=([^&#]*)');
+          var results = regex.exec(window.location.href);
+          return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
+        }
+
+        // --- Function to check if the device is a CloudFone ---
+        function isCloudPhone() {
+            // Allows forcing CloudFone mode via URL for testing (e.g., page.html?iscloudfone=true)
+            if (gup('iscloudfone') === 'true') {
+                return true;
+            }
+            const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
+            // The actual user agent string for CloudFone devices.
+            return normalizedUserAgent.includes('cloudphone');
+        }
+
+        // --- CORE LOGIC ---
+        window.onload = () => {
+            setupControls();
+            fetchFileList();
+
+            // --- Conditionally add keyboard controls ---
+            if (!isCloudPhone()) {
+                // If it's NOT a CloudFone, enable full keyboard navigation.
+                window.addEventListener('keydown', handleKeyDown);
+            } else {
+                // If it IS a CloudFone, hide the softkey bar as it's not needed.
+                document.querySelector('.softkey-bar').style.display = 'none';
+            }
+            
+            updateSelection();
+        };
+
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                document.getElementById('extraction-modal').style.display = 'none';
+                document.getElementById('search-box').value = '';
+                applyFiltersAndRender();
+            }
+        });
+
+        function fetchFileList() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'list.txt', true); 
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    allFiles = xhr.responseText.split(/\r?\n/).filter(line => line.trim() !== '').map(path => ({
+                        path: path,
+                        name: path.substring(path.lastIndexOf('/') + 1).replace(/\.jar$/i, ''),
+                        type: path.substring(path.lastIndexOf('.') + 1)
+                    }));
+                    applyFiltersAndRender();
+                } else if (xhr.readyState === 4) {
+                    document.getElementById('file-list').innerHTML = '<li>Error: list.txt not found.</li>';
+                }
+            };
+            xhr.send();
+        }
+
+        function setupControls() {
+            const sortBySelect = document.getElementById('sort-by');
+            const itemsPerPageSelect = document.getElementById('items-per-page');
+            const sortOrderBtn = document.getElementById('sort-order-btn');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+
+            ['None', 'Name', 'Type'].forEach(val => sortBySelect.add(new Option(val, val.toLowerCase())));
+            [10, 20, 50].forEach(val => itemsPerPageSelect.add(new Option(val, val)));
+
+            sortBySelect.value = sortCriteria; 
+
+            sortBySelect.onchange = function() { sortCriteria = this.value; applyFiltersAndRender(); };
+            sortOrderBtn.onclick = function() {
+                sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+                this.innerHTML = (sortOrder === 'asc') ? '↑' : '↓';
+                applyFiltersAndRender();
+            };
+            itemsPerPageSelect.onchange = function() {
+                itemsPerPage = parseInt(this.value, 10);
+                currentPage = 1;
+                currentFocus = 'search-box';
+                renderPage();
+            };
+            prevPageBtn.onclick = changePage.bind(null, -1);
+            nextPageBtn.onclick = changePage.bind(null, 1);
+        }
+        
+        function applyFiltersAndRender() {
+            currentFocus = 'search-box'; 
+            const searchTerm = document.getElementById('search-box').value.toLowerCase();
+            filteredFiles = allFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
+            sortFiles();
+            currentPage = 1;
+            renderPage();
+        }
+
+        function sortFiles() {
+            if (sortCriteria === 'none') {
+                if (sortOrder === 'desc') filteredFiles.reverse();
+                return;
+            }
+            filteredFiles.sort((a, b) => {
+                let valA, valB;
+                switch (sortCriteria) {
+                    case 'type': valA = a.type.toLowerCase(); valB = b.type.toLowerCase(); break;
+                    default: valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break;
+                }
+                let comparison = valA.localeCompare(valB);
+                return (sortOrder === 'asc') ? comparison : comparison * -1;
+            });
+        }
+        
+        function renderPage() {
+            const listElement = document.getElementById('file-list');
+            listElement.innerHTML = '';
+
+            if (filteredFiles.length === 0) {
+                listElement.innerHTML = '<li>No files found.</li>';
+                renderPagination();
+                listIndex = -1;
+                updateSelection();
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
+
+            pageItems.forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.setAttribute('data-path', file.path);
+                listItem.onclick = () => handleFileClick(file.path);
+                listElement.appendChild(listItem);
+            });
+
+            renderPagination();
+            listIndex = -1; 
+            updateSelection();
+        }
+
+        function renderPagination() {
+            const pageInfo = document.getElementById('page-info');
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+
+            pageInfo.textContent = (totalPages > 0) ? `Page ${currentPage} of ${totalPages}`: `Page 1 of 1`;
+            prevBtn.disabled = (currentPage <= 1);
+            nextBtn.disabled = (currentPage >= totalPages);
+        }
+        
+        function changePage(direction) {
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                if (!isCloudPhone()) { // Only change focus if keyboard controls are on
+                    currentFocus = 'list';
+                    listIndex = 0;
+                }
+                renderPageForPaging();
+            }
+        }
+        
+        function renderPageForPaging() {
+             const listElement = document.getElementById('file-list');
+             listElement.innerHTML = '';
+             const startIndex = (currentPage - 1) * itemsPerPage;
+             const pageItems = filteredFiles.slice(startIndex, startIndex + itemsPerPage);
+             pageItems.forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.setAttribute('data-path', file.path);
+                listItem.onclick = () => handleFileClick(file.path);
+                listElement.appendChild(listItem);
+            });
+            renderPagination();
+            updateSelection();
+        }
+
+        function handleFileClick(filePath) {
+            showExtractionModal(`Extracting...`);
+            extractMidletClassName(filePath, (error, midletName) => {
+                if (error) {
+                    showExtractionModal(`Error: ${error.message}`, true);
+                } else {
+                    document.getElementById('extraction-modal').style.display = 'none';
+                    const redirectUrl = `main.html?jarlink=${filePath}&midlet=${encodeURIComponent(midletName)}`;
+                    window.location.href = redirectUrl;
+                }
+            });
+        }
+
+        // --- KEYBOARD CONTROL (This function is now only called if !isCloudPhone()) ---
+        function handleKeyDown(event) {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'].includes(event.key)) {
+                event.preventDefault();
+            }
+            if (currentFocus === 'modal') {
+                 if (event.key === 'Enter' || event.key === 'Backspace') closeExtractionModal();
+                 return;
+            }
+            const currentControlIndex = focusableControls.indexOf(currentFocus);
+            switch (event.key) {
+                case 'ArrowDown':
+                    if (currentFocus === 'list') {
+                        const listLength = document.getElementById('file-list').children.length;
+                        if (listIndex < listLength - 1) listIndex++;
+                    } else {
+                        const nextIndex = currentControlIndex + 1;
+                        if (nextIndex < focusableControls.length) {
+                            currentFocus = focusableControls[nextIndex];
+                        } else if (filteredFiles.length > 0) {
+                            currentFocus = 'list';
+                            listIndex = 0;
+                        }
+                    }
+                    break;
+                case 'ArrowUp':
+                    if (currentFocus === 'list') {
+                        if (listIndex > 0) listIndex--;
+                        else {
+                            listIndex = -1;
+                            currentFocus = focusableControls[focusableControls.length - 1];
+                        }
+                    } else {
+                        const prevIndex = currentControlIndex - 1;
+                        if (prevIndex >= 0) currentFocus = focusableControls[prevIndex];
+                    }
+                    break;
+                case 'ArrowRight': if (currentFocus === 'list') changePage(1); break;
+                case 'ArrowLeft': if (currentFocus === 'list') changePage(-1); break;
+                case 'Enter':
+                    if (currentFocus === 'list' && listIndex > -1) {
+                        document.getElementById('file-list').children[listIndex]?.click();
+                    } else if (currentFocus === 'sort-order-btn') {
+                        document.getElementById('sort-order-btn').click();
+                    }
+                    break;
+                case 'Backspace': window.close(); break;
+            }
+            updateSelection();
+        }
+
+        function updateSelection() {
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            
+            // If it's a CloudFone, do not show any selection highlight.
+            if (isCloudPhone()) {
+                document.getElementById('search-box').blur(); // Ensure cursor is not active by default
+                return;
+            }
+
+            // The rest of this function only runs if keyboard controls are enabled.
+            if (currentFocus === 'list') {
+                document.getElementById('search-box').blur();
+                const listItems = document.getElementById('file-list').children;
+                if (listIndex > -1 && listItems[listIndex]) {
+                    const selectedItem = listItems[listIndex];
+                    selectedItem.classList.add('selected');
+                    selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            } else {
+                const focusedControl = document.getElementById(currentFocus);
+                if (focusedControl) {
+                    focusedControl.classList.add('selected');
+                    if (currentFocus === 'search-box') focusedControl.focus();
+                }
+            }
+            updateSoftkeys();
+        }
+
+        function updateSoftkeys() {
+            const left = document.getElementById('softkey-left'), center = document.getElementById('softkey-center'), right = document.getElementById('softkey-right');
+            left.textContent = ''; right.textContent = 'Exit';
+            if (currentFocus === 'modal') {
+                center.textContent = 'CLOSE'; right.textContent = '';
+            } else if (currentFocus === 'list') {
+                center.textContent = 'SELECT';
+            } else if (currentFocus.includes('select')) {
+                center.textContent = 'CHANGE';
+            } else if (currentFocus === 'sort-order-btn') {
+                 center.textContent = 'TOGGLE';
+            } else {
+                center.textContent = '';
+            }
+        }
+        
+        function showExtractionModal(message, isError = false) {
+            currentFocus = 'modal';
+            if(isCloudPhone()) currentFocus = null; // No focus in modal on cloudfone
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('extraction-modal').style.display = 'flex';
+            if(!isCloudPhone()) updateSoftkeys();
+        }
+        
+        function closeExtractionModal() {
+            currentFocus = 'search-box';
+            document.getElementById('extraction-modal').style.display = 'none';
+            updateSelection();
+        }
+        
+        function extractMidletClassName(zipUrl, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', zipUrl, true);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    JSZip.loadAsync(xhr.response).then(zip => zip.file("META-INF/MANIFEST.MF")?.async("string")).then(content => {
+                        if (!content) return callback(new Error("MANIFEST.MF not found or empty."), null);
+                        const midletLine = content.split(/\r?\n/).find(line => line.match(/^MIDlet-\d+:/));
+                        if (!midletLine) return callback(new Error("MIDlet-N not found."), null);
+                        const parts = midletLine.substring(midletLine.indexOf(':') + 1).split(',');
+                        if (parts.length < 3) return callback(new Error("Malformed MIDlet line."), null);
+                        callback(null, parts[parts.length - 1].trim());
+                    }).catch(err => callback(err, null));
+                } else {
+                    callback(new Error(`Fetch failed (Status: ${xhr.status})`), null);
+                }
+            };
+            xhr.onerror = () => callback(new Error("Network error."), null);
+            xhr.send();
+        }
+    </script>
+</body>
+  </html>
