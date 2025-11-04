@@ -864,6 +864,10 @@
 					closeLocalConfig();
 					break;
 			}
+			window.addEventListener("back", (event) => {
+  event.preventDefault();
+  closeLocalConfig();
+});
 		}
 		
 		// Attach the initial event listener
