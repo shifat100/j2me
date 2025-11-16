@@ -27,11 +27,11 @@ function handleKeydown(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft": case "Escape":
+    case "SoftLeft":
       MIDP.sendKeyPress(-6);
       break;
     case "E":
-    case "SoftRight": case "#":
+    case "SoftRight":
       MIDP.sendKeyPress(-7);
       break;
     case "0":
@@ -74,7 +74,9 @@ function handleKeydown(e) {
       MIDP.sendKeyPress(35);
       break;
     case "Call":
-      MIDP.sendKeyPress(-7);
+      if (keyDownTime_Star == 0) {
+        keyDownTime_Star = Date.now();
+      }
       break;
   }
 
@@ -103,11 +105,11 @@ function handleKeyup(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft": case "Escape":
+    case "SoftLeft":
       MIDP.sendKeyRelease(-6);
       break;
     case "E":
-    case "SoftRight": case "#":
+    case "SoftRight":
       MIDP.sendKeyRelease(-7);
       break;
     case "0":
@@ -151,7 +153,19 @@ function handleKeyup(e) {
       MIDP.sendKeyRelease(35);
       break;
     case "Call":
-           MIDP.sendKeyRelease(-7);
+      if (Date.now() - keyDownTime_Star > 1000) {
+        keyDownTime_Star = 0;
+        window.location.href = "/index.html";
+      } else {
+        var canvas = document.querySelector('canvas');
+        var a = document.createElement("a");
+        a.href = canvas.toDataURL("image/jpeg");
+        a.download = localStorage.getItem("focusedJar") + "_" + new Date().getTime().toString() + ".jpg";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
       break;
   }
 }
@@ -160,11 +174,6 @@ function handleKeyup(e) {
 //document.οnkeyup=handleKeyup;
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyup);
-window.addEventListener("back", (event) => {
-  event.preventDefault();
-  MIDP.sendKeyPress(-7);
- MIDP.sendKeyRelease(-7);
-});
 
 var SupportsTouches =
   "ontouchstart" in window ||
