@@ -27,16 +27,7 @@
   <script type="text/javascript" src="bld/j2me.js" defer></script>
   <script type="text/javascript" src="bld/main-all.js" defer></script>
   <script type="text/javascript" src="keymap.js"></script>
-  <script type="text/javascript">
-	atOptions = {
-		'key' : '3768c5dda0b47669346bd50d7189ab3b',
-		'format' : 'iframe',
-		'height' : 60,
-		'width' : 468,
-		'params' : {}
-	};
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/3768c5dda0b47669346bd50d7189ab3b/invoke.js"></script>
+  <script type="text/javascript" src="kaiads.v5.min.js"></script>
 
 </head>
 
@@ -252,7 +243,33 @@
       </section>
     </div>
  </div>
+<script>
+  
 
+document.addEventListener('DOMContentLoaded', () => {
+    getKaiAd({
+        publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+        app: 'java',
+        slot: 'java',
+        onerror: (err) => console.error('Custom catch:', err),
+        onready: (ad) => {
+            ad.call('display');
+        },
+    });
+});
+
+document.body.addEventListener('keyup', () => {
+    getKaiAd({
+        publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+        app: 'java',
+        slot: 'java',
+        onerror: (err) => console.error('Custom catch:', err),
+        onready: (ad) => {
+            ad.call('display');
+        },
+    });
+});
+</script>
 </body>
 
 </html>
