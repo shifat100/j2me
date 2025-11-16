@@ -950,21 +950,17 @@ function isKaios() {
 				case 'Enter':
 					document.activeElement.click();
 					break;
-				case 'SoftRight':
+				case 'f2': case 'SoftRight':
 					localStorage.removeItem('focusedJar');
 					window.close();
 					break;
-				case 'f2':
-					localStorage.removeItem('focusedJar');
-					window.close();
-					break;
-				case 'SoftLeft':
+				
+				case 'SoftLeft': case 'Escape': case 'F1':
 					openmenubar();
 					break;
 				case 'f1':
 					openmenubar();
 					break;
-
 			}
 
 
