@@ -398,6 +398,10 @@ function isKaios() {
 			f3.innerHTML = 'Back';
 			document.body.removeEventListener('keydown', keydownlisterner);
 			document.body.addEventListener('keydown', keydownmenubar);
+			window.addEventListener('back', function(e) {
+				e.preventDefault();
+				closemenubar();
+			})
 		}
 
 		function closemenubar() {
@@ -920,6 +924,11 @@ function isKaios() {
 		// }, 1000);
 
 		document.body.addEventListener('keydown', keydownlisterner);
+		window.addEventListener('back', function(e) {
+			e.preventDefault();
+			localStorage.removeItem('focusedJar');
+					window.close();
+		});
 
 		function keydownlisterner(e) {
 			switch (e.key) {
