@@ -8820,13 +8820,13 @@ var currentlyFocusedTextEditor;
 
   function transRgba(arr) {
 
-    for (let i = 0; i < arr.length; i++) {
+    for (var i = 0; i < arr.length; i++) {
       arr[i] = trans10to16(arr[i]);
     }
     return '#' + arr.join('');
   }
   function trans10to16(num10) { //十进制转十六进制
-    let rusult = 0;
+    var rusult = 0;
     result = num10.toString(16);
     if (result.length == 1) {
       result = "0" + result;
@@ -10738,7 +10738,7 @@ NokiaFileUILocalMsgConnection.prototype.sendMessageToServer = function (data, of
       var btnDone = el.querySelector("button.recommend");
       btnDone.disabled = true;
       var selectedFile = null;
-      fileInput.addEventListener("input", function () {
+      fileInput.addEventListener("change", function () {
         btnDone.disabled = false;
         selectedFile = this.files[0];
       });
@@ -12572,7 +12572,7 @@ function base64ToUint8Array(base64String) {
   var base64 = base64String.replace(/^data:image\/\w+;base64,/, "");
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
+  for (var i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
