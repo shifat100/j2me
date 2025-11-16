@@ -706,24 +706,7 @@ function isKaios() {
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
 			refreshGameList();
 
-		if(isKaios())	{ navigator.mozSetMessageHandler('activity', function (activityReq) {
-				var _file = activityReq.source.data.blob;
-				var reader = new FileReader();
-				reader.readAsArrayBuffer(_file);
-				reader.onload = function (readRes) {
-					JARStore.installJAR(_file.name, readRes.target.result).then(
-						() => {
-							alertSuccess(1, 0);
-							refreshGameList();
-						},
-						(errname) => {
-							alertSuccess(0, 1);
-							refreshGameList();
-						}
-					);
-					document.getElementById('jarFileupload').value = null;
-				}
-			}); }
+		
 		});
 
 		
