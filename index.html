@@ -373,7 +373,14 @@
 
 
 	<script type="text/javascript">
-
+function isKaios() {
+    const normalizedUserAgent = (navigator.userAgent || '').toLowerCase();
+    return (
+        normalizedUserAgent.includes('lyf')    
+        || normalizedUserAgent.includes('jio')
+		 || normalizedUserAgent.includes('kaios')
+    );
+}
 		var header = document.getElementsByClassName('header')[0];
 		var f1 = document.querySelectorAll('.footerelement')[0];
 		var f2 = document.querySelectorAll('.footerelement')[1];
@@ -695,7 +702,7 @@
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
 			refreshGameList();
 
-			navigator.mozSetMessageHandler('activity', function (activityReq) {
+		if(isKaios())	{ navigator.mozSetMessageHandler('activity', function (activityReq) {
 				var _file = activityReq.source.data.blob;
 				var reader = new FileReader();
 				reader.readAsArrayBuffer(_file);
@@ -712,10 +719,10 @@
 					);
 					document.getElementById('jarFileupload').value = null;
 				}
-			});
+			}); }
 		});
 
-
+		
 
 		function openLocalJar() {
 			closemenubar();
