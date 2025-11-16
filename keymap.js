@@ -8,10 +8,6 @@ function handleKeydown(e) {
   if (e.key != "EndCall" && e.key != "Backspace") {
     //e.preventDefault();//清除默认行为（滚动屏幕等）
   }
-  window.addEventListener('back', function(e) {
-  e.preventDefault();
-     MIDP.sendKeyPress(-7);
-  })
   switch (e.key) {
     case "ArrowUp":
       MIDP.sendKeyPress(-1);
@@ -31,7 +27,7 @@ function handleKeydown(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft":
+    case "SoftLeft":case "Escape":
       MIDP.sendKeyPress(-6);
       break;
     case "E":
@@ -110,6 +106,7 @@ function handleKeyup(e) {
       break;
     case "Q":
     case "SoftLeft":
+    case "Escape":
       MIDP.sendKeyRelease(-6);
       break;
     case "E":
@@ -178,6 +175,12 @@ function handleKeyup(e) {
 //document.οnkeyup=handleKeyup;
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyup);
+  window.addEventListener('back', function(e) {
+  e.preventDefault();
+     MIDP.sendKeyPress(-7);
+    setTimeout(function() { MIDP.sendKeyRelease(-7); }, 80);
+  })
+
 
 var SupportsTouches =
   "ontouchstart" in window ||
