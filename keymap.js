@@ -8,6 +8,10 @@ function handleKeydown(e) {
   if (e.key != "EndCall" && e.key != "Backspace") {
     //e.preventDefault();//清除默认行为（滚动屏幕等）
   }
+  window.addEventListener('back', function(e) {
+  e.preventDefault();
+     MIDP.sendKeyPress(-7);
+  })
   switch (e.key) {
     case "ArrowUp":
       MIDP.sendKeyPress(-1);
