@@ -448,6 +448,10 @@
 			f3.innerHTML = 'Back';
 			document.body.removeEventListener('keydown', keydownmenubar);
 			document.body.addEventListener('keydown', keydownlocalconfig);
+			window.addEventListener('back', (event) => {
+				event.preventDefault();
+				closeLocalConfig();
+			});
 		}
 
 		function closeLocalConfig() {
@@ -460,6 +464,10 @@
 			}
 			document.body.removeEventListener('keydown', keydownlocalconfig);
 			document.body.addEventListener('keydown', keydownmenubar);
+			window.addEventListener('back', (event) => {
+				event.preventDefault();
+				closemenubar();
+			});
 			document.querySelectorAll('.menuelement')[1].focus(); // Focus back on "Set Config"
 		}
 
@@ -483,7 +491,7 @@
 				(files) => {
 					var applist = document.getElementById('gamepanel');
 					var listapp = ['<a class="game focusable" href="javascript:void(0)" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0" data-name="User Manual" onfocus="menubarroot();"> <div style="height:64px;"> <img src="img/ftu.png" width="50px" height="50px"></img> </div> <div class="version">Help</div></a>'];
-					
+
 					for (var i = 0; i < files.length; i++) {
 						var res = files[i];
 						var name = baseFileName(res.jarName); // Default name
@@ -503,22 +511,22 @@
 									mfdata = inflate(mffile.compressed_data, mffile.uncompressed_len);
 									break;
 								default:
-								    throw new Error("Unsupported compression method for MANIFEST.MF");
+									throw new Error("Unsupported compression method for MANIFEST.MF");
 							}
 
 							mfdata = new TextDecoder('utf-8').decode(mfdata);
 							var dts = processLocalJAD(mfdata);
 							var midletInfo = dts['MIDlet-1'];
 							jarVersion = dts['MIDlet-Version'] || 'N/A';
-							
+
 							var a = midletInfo.split(',');
 							name = a[0].trim();
-							
+
 							var jariconPath = a[1].trim();
 							if (jariconPath.startsWith("/")) {
 								jariconPath = jariconPath.substring(1);
 							}
-							
+
 							var iconfile = res.jar[jariconPath] || res.jar[dts['MIDlet-Icon'] ? dts['MIDlet-Icon'].trim() : ''];
 							if (iconfile) {
 								var iconfiledata;
@@ -530,12 +538,12 @@
 										iconfiledata = new Uint8Array(inflate(iconfile.compressed_data, iconfile.uncompressed_len));
 										break;
 								}
-								if(iconfiledata){
+								if (iconfiledata) {
 									var blob = new Blob([iconfiledata], { type: "image/png" });
 									url = URL.createObjectURL(blob);
 								}
 							}
-							
+
 						} catch (err) {
 							console.error("Error processing JAR " + res.jarName + ":", err);
 						}
@@ -607,7 +615,7 @@
 				if (!_file.name.toLowerCase().endsWith('.jar')) {
 					failcount++;
 					processedCount++;
-					if(processedCount === allcount) alertSuccess(successcount, failcount);
+					if (processedCount === allcount) alertSuccess(successcount, failcount);
 					continue;
 				}
 				const reader = new FileReader();
@@ -635,11 +643,11 @@
 				}
 			}
 		}
-		
+
 		window.addEventListener('load', () => {
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
 			refreshGameList();
-			
+
 			// Set up activity handler for opening files
 			if ('mozSetMessageHandler' in navigator) {
 				navigator.mozSetMessageHandler('activity', function (activityReq) {
@@ -676,12 +684,12 @@
 			if (islocaljar) {
 				href = 'main.html?localjar=' + jarname;
 			}
-			
+
 			href += '&gamepad=0';
 
 			const focusedJar = localStorage.getItem('focusedJar');
 			const customSize = focusedJar ? localStorage.getItem(focusedJar) : null;
-			
+
 			if (customSize) {
 				href += '&canvasSize=size-' + customSize;
 			} else {
@@ -691,7 +699,7 @@
 			// The gameresize dropdown is hidden, so we hardcode a default or remove it.
 			// Let's assume 'resize-1' (None) is the desired default.
 			href += '&gameresize=resize-1';
-			
+
 			window.location.href = href;
 		}
 
@@ -776,12 +784,12 @@
 				nextIndex = 0; // Stop at the beginning
 				// Or to wrap around: nextIndex = items.length - 1;
 			}
-			
+
 			const targetElement = items[nextIndex];
 			if (targetElement) {
 				targetElement.focus();
 				// Scrolling into view is important for long lists
-				if(selector === '.focusable') {
+				if (selector === '.focusable') {
 					targetElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
 				}
 			}
@@ -808,7 +816,7 @@
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if(document.activeElement && typeof document.activeElement.click === 'function') {
+					if (document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
@@ -817,7 +825,7 @@
 					localStorage.removeItem('focusedJar');
 					window.close();
 					break;
-				case 'SoftLeft': case 'F1':
+				case 'SoftLeft': case 'F1': case 'Escape':
 					openmenubar();
 					break;
 			}
@@ -835,7 +843,7 @@
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if(document.activeElement && typeof document.activeElement.click === 'function') {
+					if (document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
@@ -884,10 +892,14 @@
 					break;
 			}
 		}
-		
-		// Attach the initial event listener
-		document.body.addEventListener('keydown', keydownlisterner);
 
+
+		document.body.addEventListener('keydown', keydownlisterner);
+		window.addEventListener('back', (event) => {
+			event.preventDefault();
+			localStorage.removeItem('focusedJar');
+			window.close();
+		});
 	</script>
 </body>
 
