@@ -703,36 +703,9 @@
 			window.location.href = href;
 		}
 
-		document.addEventListener('DOMContentLoaded', () => {
-			if (typeof getKaiAd === 'function') {
-				getKaiAd({
-					publisher: '080b82ab-b33a-4763-a498-50f464567e49',
-					app: 'java',
-					slot: 'java',
-					onerror: (err) => console.error('KaiAd Error:', err),
-					onready: (ad) => {
-						ad.call('display');
-					},
-				});
-			}
-		});
+	
 
-		document.body.addEventListener('keyup', (e) => {
-			// Trigger ads on interaction, but avoid doing it for every single key press
-			if (e.key === 'Enter' || e.key === 'SoftLeft' || e.key === 'SoftRight') {
-				if (typeof getKaiAd === 'function') {
-					getKaiAd({
-						publisher: '080b82ab-b33a-4763-a498-50f464567e49',
-						app: 'java',
-						slot: 'java',
-						onerror: (err) => console.error('KaiAd Error:', err),
-						onready: (ad) => {
-							ad.call('display');
-						},
-					});
-				}
-			}
-		});
+		
 	</script>
 	<div style="display:flex;flex-wrap: wrap; margin: 10px 0px;float:left;align-items: center;" id="gamepanel">
 	</div>
