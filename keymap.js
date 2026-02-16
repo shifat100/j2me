@@ -27,7 +27,7 @@ function handleKeydown(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft":case "Escape":
+    case "SoftLeft": case "Escape":
       MIDP.sendKeyPress(-6);
       break;
     case "E":
@@ -105,8 +105,7 @@ function handleKeyup(e) {
     case "Backspace":
       break;
     case "Q":
-    case "SoftLeft":
-    case "Escape":
+    case "SoftLeft":  case "Escape":
       MIDP.sendKeyRelease(-6);
       break;
     case "E":
@@ -173,13 +172,15 @@ function handleKeyup(e) {
 
 //document.οnkeydοwn=handleKeydown;
 //document.οnkeyup=handleKeyup;
+
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyup);
-  window.addEventListener('back', function(e) {
-  e.preventDefault();
-     MIDP.sendKeyPress(-7);
-    setTimeout(function() { MIDP.sendKeyRelease(-7); }, 80);
-  })
+
+window.addEventListener('back', (event) => {
+  event.preventDefault(); 
+  MIDP.sendKeyPress(-7);
+  setTimeout(function() { MIDP.sendKeyRelease(-7); }, 100);
+});
 
 
 var SupportsTouches =
