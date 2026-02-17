@@ -1,0 +1,104 @@
+{
+  "name": "J2ME Emul",
+  "description": "Java Is A J2ME compatible virtual machine / Emulator for Kaios. Install And Play Java *.jar Games Easily On Your Phone. Ported For Kaios By Shifat100",
+  "launch_path": "/index.html",
+  "origin": "app://java.shifat100.app",
+  "version": "1.8.0",
+  "icons": {
+    "56": "/img/java-56.png",
+    "112": "/img/java-112.png",
+    "128": "/img/java-128.png",
+    "512": "/img/java-512.png"
+  },
+  "developer": {
+    "name": "shifat100",
+    "url": "http://shifat100.xtgem.com/"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Java",
+      "subtitle": "J2ME Emulator",
+      "description": "Java Is A J2ME compatible virtual machine / Emulator for Kaios. Install And Play Java *.jar Games Easily On Your Phone. Ported For Kaios By Shifat100"
+    }
+  },
+  "default_locale": "en-US",
+  "orientation": "portrait",
+  "theme_color": "#FF0000",
+  "permissions": {
+    "geolocation": {
+      "description": "Required by location API."
+    },
+    "spatialnavigation-app-manage": {
+       "description": "Required For Toggle Cursor API."
+    },
+    "tcp-socket": {
+      "description": "Required to connect to internet"
+    },
+    "contacts": {
+      "description": "Required to manage contacts",
+      "access": "readonly"
+    },
+    "mobilenetwork": {
+      "description": "Required to verify your phone number"
+    },
+    "browser": {
+      "description": "Required to improve performance"
+    },
+    "audio-capture": {
+      "description": "Required to capture audio via getUserMedia"
+    },
+    "video-capture": {
+      "description": "Required to take pictures"
+    },
+    "desktop-notification": {
+      "description": "Required to display notifications"
+    },
+    "systemXHR": {
+      "description": "Required to download MIDlets"
+    },
+    "storage": {
+      "description": "Required to store files without limitations"
+    },
+    "alarms": {
+      "description": "Required to perform tasks while the app isn't running"
+    }
+  },
+  "activities": {
+    "open": {
+      "filters": {
+        "filename": {
+          "pattern": ".*(jar$|JAR$)",
+          "patternFlags": "gi"
+        }
+      },
+      "href": "/index.html",
+      "disposition": "inline",
+      "returnValue": true
+    },
+    "share": {
+      "filters": {
+        "filenames": {
+          "pattern": ".*(jar$|JAR$)",
+          "patternFlags": "gi"
+        }
+      },
+      "href": "/installer.html",
+      "disposition": "window",
+      "returnValue": true
+    },
+    "import": {
+      "filters": {
+        "filename": {
+          "pattern": ".*(jar$|JAR$)",
+          "patternFlags": "gi"
+        }
+      },
+      "href": "/installer.html",
+      "disposition": "window",
+      "returnValue": true
+    }
+  },
+  "type": "web",
+  "cursor": false,
+  "fullscreen": true
+}
