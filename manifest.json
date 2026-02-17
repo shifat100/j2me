@@ -1,33 +1,30 @@
 {
-  "name": "J2me Emul",
-  "short_name": "JAVA",
-  "icons": [{
-    "src": "/img/java-128.png",
-    "sizes": "128x128",
-    "type": "image/png"
-  }, {
-    "src": "/img/java-144.png",
-    "sizes": "144x144",
-    "type": "image/png"
-  }, {
-    "src": "/img/java-52.png",
-    "sizes": "152x152",
-    "type": "image/png"
-  }, {
-    "src": "/img/java-92.png",
-    "sizes": "192x192",
-    "type": "image/png"
-  }, {
-    "src": "/img/java-256.png",
-    "sizes": "256x256",
-    "type": "image/png"
-  }, {
-    "src": "/img/java-512.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }],
-  "start_url": "/index.html",
+  "id": "j2meemul",
+  "name": "J2ME Emul",
+  "short_name": "J2ME",
+  "description": "Java Is A J2ME compatible virtual machine / Emulator for KaiOS. Install And Play Java *.jar Games Easily On Your Phone. Ported For KaiOS By Shifat100",
+  "lang": "en-US",
+  "start_url": "index.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#3E4EB8",
-  "theme_color": "#2F3BA2"
+  "orientation": "portrait",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/img/java-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/java-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/java-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
