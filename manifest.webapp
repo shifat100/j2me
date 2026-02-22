@@ -1,36 +1,47 @@
 {
-  "name": "J2ME Emul",
-  "short_name": "JAVA",
-  "description": "Play classic J2ME games on KaiOS",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "orientation": "portrait",
-  "scope": "/",
   "lang": "en-US",
-
+  "id": "J2ME Emul",
+  "name": "J2ME Emul",
+  "description": "Java Is A J2ME compatible virtual machine / Emulator for Kaios. Install And Play Java *.jar Games Easily On Your Phone. Ported For Kaios By Shifat100",
+  "theme": "#000000",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "start_url": "./index.html",
   "icons": [
     {
-      "src": "/img/java-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "img/java-56.png",
+      "type": "image/png",
+      "sizes": "56x56"
     },
     {
-      "src": "/img/java-56.png",
-      "sizes": "56x56",
-      "type": "image/png"
+      "src": "img/java-112.png",
+      "type": "image/png",
+      "sizes": "112x112"
     },
     {
-      "src": "/img/java-128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "/img/java-112.png",
-      "sizes": "112x112",
-      "type": "image/png"
+      "src": "img/java-128.png",
+      "type": "image/png",
+      "sizes": "128x128"
     }
   ],
-
-  "background_color": "#000000",
-  "theme_color": "#4caf50"
+  "b2g_features": {
+    "version": "3.0.1",
+    "type": "web",
+    "default_locale": "en-US",
+    "developer": {
+      "name": "shifat100",
+      "url": "http://shifat100.xtgem.com"
+    },
+    "dependencies": {
+      "ads-sdk": "1.5.3"
+    },
+    "locales": {
+      "en-US": {
+        "name": "JAVA",
+        "subtitle": "J2me emulator",
+        "description": "Java Is A J2ME compatible virtual machine / Emulator for Kaios. Install And Play Java *.jar Games Easily On Your Phone. Ported For Kaios By Shifat100"
+      }
+    }
+  }
 }
