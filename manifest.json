@@ -7,6 +7,10 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait-primary",
+   "developer": {
+      "name": "shifat100",
+      "url": "http://shifat100.xtgem.com"
+    },
   "icons": [
     {
       "src": "img/java-56.png",
