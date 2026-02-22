@@ -26,8 +26,7 @@
     }
   ],
   "b2g_features": {
-    "version": "3.0.1",
-    "type": "web",
+    "version": "4.0.0",
     "default_locale": "en-US",
     "developer": {
       "name": "shifat100",
