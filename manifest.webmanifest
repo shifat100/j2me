@@ -1,30 +1,36 @@
 {
-  "id": "j2meemul",
   "name": "J2ME Emul",
-  "short_name": "J2ME",
-  "description": "Java Is A J2ME compatible virtual machine / Emulator for KaiOS. Install And Play Java *.jar Games Easily On Your Phone. Ported For KaiOS By Shifat100",
-  "lang": "en-US",
-  "start_url": "index.html",
-  "scope": "/",
+  "short_name": "JAVA",
+  "description": "Play classic J2ME games on KaiOS",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#000000",
-  "background_color": "#ffffff",
+  "scope": "/",
+  "lang": "en-US",
+
   "icons": [
+    {
+      "src": "/img/java-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/java-56.png",
+      "sizes": "56x56",
+      "type": "image/png"
+    },
     {
       "src": "/img/java-128.png",
       "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "/img/java-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/img/java-512.png",
-      "sizes": "512x512",
+      "src": "/img/java-112.png",
+      "sizes": "112x112",
       "type": "image/png"
     }
-  ]
+  ],
+
+  "background_color": "#000000",
+  "theme_color": "#4caf50"
 }
