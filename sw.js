@@ -25,7 +25,6 @@ const ASSETS_TO_CACHE = [
     "index1.js",
     "index2.html",
     "installer.html",
-    "J2me PWA .zip",
     "jar/ftu.jar",
     "java/classes.jar",
     "java.png",
@@ -223,6 +222,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  self.skipWaiting(); // Force update immediately
 });
 
 // Activate Event: Cleanup old caches
@@ -241,11 +241,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Serve from cache, fallback to network
+// Fetch Event: Serve from cache, handle parameters, and auto-cache JARs
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    // ignoreSearch: true makes main.html?query=123 match main.html in cache
+    caches.match(event.request, { ignoreSearch: true }).then((response) => {
+      
+      // If found in cache, return it (works for main.html with random params)
+      if (response) {
+        return response;
+      }
+
+      // If NOT in cache, try to fetch from network
+      return fetch(event.request).then((networkResponse) => {
+        
+        // DYNAMIC CACHING: If it's a JAR file, save it to cache automatically for next time
+        if (event.request.url.endsWith('.jar')) {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        }
+        
+        return networkResponse;
+      });
     })
   );
 });
