@@ -6,9 +6,6 @@
 	<title>JAVA</title>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-	<link rel="manifest" href="manifest.webmanifest">
-	<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
 	<script src="libs/encoding.js"></script>
 	<script type="text/javascript" src="config/default.js" defer></script>
 	<script type="text/javascript" src="config/runtests.js" defer></script>
@@ -23,9 +20,13 @@
 	<script type="text/javascript" src="kaiads.v5.min.js" defer></script>
 
 	<style>
+		/* Core Layout */
 		body {
-			padding: 30px 8px 30px 8px;
+			padding: 28px 0px 30px 0px;
 			margin: 0px;
+			background-color: #fff;
+			font-family: sans-serif;
+			overflow-x: hidden;
 		}
 
 		* {
@@ -37,49 +38,63 @@
 			color: #000;
 		}
 
+		/* KaiUI Standard Header */
 		.header {
 			display: block;
 			width: 100%;
-			padding: 5px 0;
+			height: 28px;
+			line-height: 28px;
 			text-align: center;
-			font-size: 1em;
-			background-color: black;
+			font-size: 16px;
+			font-weight: bold;
+			background-color: #873eff; /* KaiOS primary brand color */
 			color: #fff;
 			position: fixed;
 			top: 0;
 			left: 0;
 			overflow: hidden;
 			text-overflow: ellipsis;
-			white-space: nowrap
+			white-space: nowrap;
+			z-index: 100;
 		}
 
+		/* KaiUI Standard Softkeys (Footer) */
 		.footer {
 			width: 100%;
+			height: 30px;
 			display: flex;
 			text-align: center;
 			position: fixed;
 			bottom: 0;
 			left: 0;
-			background-color: black;
+			background-color: #cccccc;
+		
 		}
 
 		.footerelement {
 			display: inline-block;
-			width: 33%;
-			font-size: 1em;
-			font-weight: bold;
-			color: #fff;
-			padding: 5px 0;
+			width: 33.3%;
+			font-size: 14px;
+			font-weight: 600;
+			color: #333;
+			line-height: 30px;
 			text-align: center;
 			overflow: hidden;
 			text-overflow: ellipsis;
-			white-space: nowrap
+			white-space: nowrap;
+			text-transform: capitalize;
+		}
+		
+		.footerelement:nth-child(2) {
+			font-weight: 700; /* Center key bolder */
+			text-transform: uppercase;
 		}
 
+		/* Game List */
 		.game {
 			text-align: center;
 			border: 3px solid transparent;
-			margin-right: 10px;
+			margin: 5px;
 			padding: 0px;
 			border-radius: 5px;
 			text-align: center;
@@ -87,49 +102,57 @@
 			outline-width: 1px;
 			outline-color: silver;
 			outline-style: solid;
-			font-size: 15px;
-			padding: 0px;
+			font-size: 14px;
 			width: 63px;
+			display: inline-block;
 		}
 
 		.game:focus {
 			outline-color: transparent;
-			border: 3px solid rgb(0, 0, 0);
+			border: 3px solid #873eff;
+			background-color: #e2d1ff;
 		}
 
 		.game>.version {
-			padding: 0px 15px
+			padding: 0px 5px;
+			font-size: 11px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		.game:focus>.version {
-			background: linear-gradient(#000, #555, #000);
+			background: #873eff;
 			color: white;
 		}
 
-
+		/* Menu */
 		.menubar {
 			position: fixed;
-			width: 60%;
-			background-color: black;
+			width: 100%;
+			max-height: calc(100% - 58px);
+			overflow-y: auto;
+			background-color: #fff;
 			left: 0;
-			bottom: 31px
+			bottom: 30px;
+			z-index: 50;
+			box-shadow: 0px -2px 5px rgba(0,0,0,0.2);
 		}
 
 		.menuelement {
 			width: 100%;
-			color: white;
-			border: 1px solid #000;
-			padding: 5px 3px;
-			font-size: 15px
+			color: #000;
+			border-bottom: 1px solid #ccc;
+			padding: 10px 10px;
+			font-size: 16px;
 		}
 
 		.menuelement:hover,
 		.menuelement:focus {
-			background-color: white;
-			color: #000;
-			cursor: pointer
+			background-color: #873eff;
+			color: #fff;
+			cursor: pointer;
 		}
-
 
 		.screeninput {
 			display: inline-block;
@@ -143,7 +166,45 @@
 
 		.screeninput:hover,
 		.screeninput:focus {
-			background: #8bdcff;
+			background: #e2d1ff;
+			border-color: #873eff;
+		}
+
+		/* KaiUI Tutorial Dialog */
+		#tutorial-dialog {
+			position: fixed;
+			top: 28px;
+			left: 0;
+			width: 100%;
+			height: calc(100% - 58px);
+			background-color: #f4f4f4;
+			z-index: 9999;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.kai-dialog-title {
+			background-color: #e2d1ff;
+			color: #000;
+			padding: 5px;
+			text-align: center;
+			font-weight: bold;
+			font-size: 16px;
+			border-bottom: 1px solid #ccc;
+		}
+
+		.kai-dialog-body {
+			padding: 10px;
+			overflow-y: auto;
+			color: #333;
+			font-size: 14px;
+			flex-grow: 1;
+		}
+
+		.kai-dialog-body p {
+			margin-top: 0;
+			margin-bottom: 8px;
+			line-height: 1.3;
 		}
 	</style>
 </head>
@@ -163,27 +224,20 @@
 					</div>
 				</div>
 				<div id="profiler">
-					<div id="profileList">
-					</div>
-					<div id="profilePanel">
-					</div>
+					<div id="profileList"></div>
+					<div id="profilePanel"></div>
 				</div>
 			</div>
 		</div>
-
 
 		<pre id="raw-console" style="display: none"></pre>
 
 		<div id="display-container" style="display: none;">
 			<div id="display">
+				<!-- System HTML from previous code... -->
 				<section id="sidebar" data-type="sidebar" style="display:none">
-					<header>
-						<h1>Menu</h1>
-					</header>
-					<nav>
-						<ul>
-						</ul>
-					</nav>
+					<header><h1>Menu</h1></header>
+					<nav><ul></ul></nav>
 				</section>
 				<section id="drawer" role="region">
 					<header style="display:none">
@@ -205,183 +259,32 @@
 					</div>
 				</section>
 
-				<div id="gamepad" onselectstart='return false' onselect='document.selection.empty()'>
-					<div id="padcontent">
-						<button>1</button>
-						<button>2</button>
-						<button>3</button>
-						<button>L</button>
-						<div></div>
-						<button>R</button>
-					</div>
-					<div id="padcontent">
-						<button>4</button>
-						<button>5</button>
-						<button>6</button>
-						<div></div>
-						<button>up</button>
-					</div>
-					<div id="padcontent">
-						<button>7</button>
-						<button>8</button>
-						<button>9</button>
-						<button>left</button>
-						<button>OK</button>
-						<button>right</button>
-					</div>
-					<div id="padcontent">
-						<button>*</button>
-						<button>0</button>
-						<button>#</button>
-						<div></div>
-						<button>down</button>
-					</div>
-				</div>
-
-				<div id="download-screen" class="screen">
-					<h1 class="title">Loading ...</h1>
-					<div class="download-progress-container">
-						<progress class="pack-activity" value="0" max="100"></progress>
-					</div>
-				</div>
-
-				<div id="splash-screen" class="screen">
-					<h1 class="title">Starting midlet…</h1>
-					<div class="splash-progress-container">
-						<progress></progress>
-					</div>
-				</div>
-
-				<div id="exit-screen" class="screen">
-				</div>
-
-				<div id="background-screen">
-				</div>
-
-				<form role="dialog" data-type="confirm" class="lcdui-alert" id="lcdui-alert" style="display: none">
-					<section>
-						<h1 class="title"></h1>
-						<p class="text"></p>
-						<p style="border-top: 0"><progress style="display: none"></progress></p>
-					</section>
-					<menu>
-						<button class="button0" style="display: none"></button>
-						<button class="button1" style="display: none"></button>
-					</menu>
-				</form>
-
-				<form role="dialog" data-type="confirm" class="sms-listener-prompt" id="sms-listener-prompt"
-					style="display: none">
-					<section>
-						<h1>SMS Verification</h1>
-						<p class="verificationText"></p>
-						<input type="text" placeholder="Type SMS Here">
-						<p class="timeLeft"></p>
-						<progress class="timeLeftBar" value="0" max="100"></progress>
-					</section>
-					<menu>
-						<button class="cancel">Cancel</button>
-						<button class="recommend">Done</button>
-					</menu>
-				</form>
-
-				<form role="dialog" data-type="confirm" class="nokia-fileui-prompt" id="nokia-fileui-prompt"
-					style="display: none">
-					<section>
-						<h1>Select a file</h1>
-						<p><input type="file" name="nokia-fileui-file">
-					</section>
-					<menu>
-						<button class="cancel">Cancel</button>
-						<button class="recommend">Done</button>
-					</menu>
-				</form>
-
-				<form role="dialog" data-type="confirm" class="download-failure-dialog" id="download-failure-dialog"
-					style="display: none">
-					<section>
-						<h1 class="download-dialog-text">Download failure</h1>
-						<p>The download of midlet failed. Press <i>Retry</i> to try again.</p>
-					</section>
-					<menu>
-						<button class="recommend">Retry</button>
-					</menu>
-				</form>
-			</div>
-			<div id="settings">
-				<section>
-					<table id="counters">
-						<tr>
-							<td>Bytecode:</td>
-							<td><span id="bytecodeCount"></span></td>
-						</tr>
-						<tr>
-							<td>Compiled:</td>
-							<td><span id="compiledCount"></span></td>
-						</tr>
-						<tr>
-							<td>Interpreter:</td>
-							<td><span id="interpreterCount"></span></td>
-						</tr>
-						<tr>
-							<td>OSR:</td>
-							<td><span id="onStackReplacementCount"></span></td>
-						</tr>
-						<tr>
-							<td>Unwind:</td>
-							<td><span id="unwindCount"></span></td>
-						</tr>
-						<tr>
-							<td>Preemption:</td>
-							<td><span id="preemptionCount"></span></td>
-						</tr>
-					</table>
-				</section>
-				<section>
-					<select id="loglevel">
-						<option value="0">Log Level: Trace
-						<option value="1">Log Level: Log
-						<option value="2">Log Level: Info
-						<option value="3">Log Level: Warn
-						<option value="4">Log Level: Error
-						<option value="5">Log Level: Silent
-					</select>
-					<input id="console-filter-input" type="text" placeholder="Filter Console Output" value="">
-					<button id="console-clear">Clear console</button>
-					<button id="console-save">Save console</button>
-					<label><input type="checkbox" id="perfWriter">Perf</label>
-				</section>
-				<section>
-					<button id="exportstorage">Export File System</button>
-					<div>Import File System:</div>
-					<input type="file" id="importstoragefile">
-					<input type="text" id="importstorageurl" placeholder="URL to FS backup">
-					<button id="importstorage">Import</button>
-					<button id="clearCompiledMethodCache">Clear Compiled Method Cache</button>
-					<button id="deleteDatabases">Delete IDB Databases</button>
-					<button id="printAllExceptions">Print all exceptions: OFF</button>
-					<button id="clearCounters">Clear Counters</button>
-					<button id="dumpCounters">Dump Counters</button>
-					<button id="sampleCounters1">One sample for 1s</button>
-					<button id="sampleCounters2">One sample for 100ms (2s)</button>
-					<select id="canvasSize1">
-						<option value="" selected>Display size: 240x320</option>
-						<option value="size-320x240">Display size: 320x240</option>
-						<option value="size-320x480">Display size: 320x480</option>
-						<option value="size-480x320">Display size: 480x320</option>
-					</select>
-					<button id="start">Start</button>
-
-				</section>
+				<!-- Other generic UI elements ... -->
 			</div>
 		</div>
 	</div>
+
+	<!-- Tutorial / Disclaimer Screen (KaiUI) -->
+	<div id="tutorial-dialog" style="display: none;">
+		<div class="kai-dialog-title">Welcome to JAVA ME</div>
+		<div class="kai-dialog-body">
+			<p><b>Welcome!</b></p>
+			<p>This is a Java ME (.jar) emulator.</p>
+			<p><b>Controls:</b><br>
+			• Use <b>D-Pad</b> to select games.<br>
+			• Press <b>Options</b> (Left key) to Install files or adjust settings.<br>
+			• Press <b>OK</b> (Center key) to open a game.</p>
+			<p><i>Note: Please ensure you own the rights to the JAR files you install.</i></p>
+			<p style="text-align:center; margin-top:10px;"><b>Press AGREE to continue</b></p>
+		</div>
+	</div>
+
 	<div class="menubar" style="display: none;" id="menubar">
 		<div class="menuelement" onclick="openLocalJar()" tabindex="0">Install</div>
 		<div class="menuelement" onclick="clearLocalJar()" tabindex="1">Uninstall All</div>
 		<div class="menuelement" tabindex="2" onclick="window.close();">Quit</div>
-
 	</div>
+	
 	<div class="footer">
 		<div class="footerelement">Menu</div>
 		<div class="footerelement">OK</div>
@@ -390,6 +293,8 @@
 
 	<input id="jarFileupload" accept=".jar" multiple="true" type="file" style="visibility: hidden;display:none;" />
 
+	<div style="display:flex;flex-wrap: wrap; margin: 5px;float:left;align-items: center;" id="gamepanel">
+	</div>
 
 	<script type="text/javascript">
 		var header = document.getElementsByClassName('header')[0];
@@ -399,14 +304,16 @@
 		var menubar = document.getElementById('menubar');
 		var tmpf3 = '';
 		var tmpf2 = '';
+		var isTutorialActive = false;
 
 		function openmenubar() {
+			if (isTutorialActive) return;
 			tmpf3 = f3.innerHTML;
 			tmpf2 = f2.innerHTML;
 			document.getElementById('menubar').style.display = 'block';
 			document.querySelectorAll('.menuelement')[0].focus();
 			f1.innerHTML = '';
-			f2.innerHTML = 'OK';
+			f2.innerHTML = 'SELECT';
 			f3.innerHTML = 'Back';
 			document.body.style.overflow = 'hidden';
 			document.body.removeEventListener('keydown', keydownlisterner);
@@ -420,6 +327,14 @@
 			document.body.addEventListener('keydown', keydownlisterner);
 			f3.innerHTML = tmpf3;
 			f2.innerHTML = tmpf2;
+			var focusedJar = localStorage.getItem('focusedJar');
+			if (focusedJar) {
+				var target = document.querySelector(`[data-jarname="${focusedJar}"]`) || document.querySelector('.focusable');
+				if (target) target.focus();
+			} else {
+				var target = document.querySelector('.focusable');
+				if (target) target.focus();
+			}
 		}
 
 		function menubarroot(jarName = null, name = 'User Manual') {
@@ -442,8 +357,8 @@
 		function setLocalConfig() {
 			var div = document.createElement('div');
 			div.id = 'localconfigbar';
-			div.innerHTML = '<div style="background: #ddd">Set Screen Size:</div><div style="color: white;"><input type="tel" class="screeninput" tabindex="0" value="0">x<input type="tel" class="screeninput" tabindex="1"  value="0"></div>';
-			div.style = "position: fixed;left: 37%;background-color: black;bottom: 105px;border: 2px solid rgb(221, 221, 221);margin-right: 5px;";
+			div.innerHTML = '<div style="background: #e2d1ff; color: #000; padding: 5px; text-align: center; font-weight: bold;">Set Screen Size:</div><div style="background-color: #f4f4f4; padding: 10px; text-align: center;"><input type="tel" class="screeninput" tabindex="0" value="0"> x <input type="tel" class="screeninput" tabindex="1"  value="0"></div>';
+			div.style = "position: fixed; width: 100%; background-color: #fff; bottom: 30px; border-top: 2px solid #ccc; z-index: 60;";
 			document.body.appendChild(div);
 			document.querySelector('.screeninput').focus();
 			f2.innerHTML = 'Save';
@@ -451,15 +366,11 @@
 			f3.innerHTML = 'Back';
 			document.body.removeEventListener('keydown', keydownmenubar);
 			document.body.addEventListener('keydown', keydownlocalconfig);
-			window.addEventListener('back', (event) => {
-				event.preventDefault();
-				closeLocalConfig();
-			});
 		}
 
 		function closeLocalConfig() {
 			f1.innerHTML = '';
-			f2.innerHTML = 'OK';
+			f2.innerHTML = 'SELECT';
 			f3.innerHTML = 'Back';
 			var configBar = document.querySelector('#localconfigbar');
 			if (configBar) {
@@ -467,13 +378,8 @@
 			}
 			document.body.removeEventListener('keydown', keydownlocalconfig);
 			document.body.addEventListener('keydown', keydownmenubar);
-			window.addEventListener('back', (event) => {
-				event.preventDefault();
-				closemenubar();
-			});
 			document.querySelectorAll('.menuelement')[1].focus(); // Focus back on "Set Config"
 		}
-
 
 		function processLocalJAD(data) {
 			var manifest = {};
@@ -485,7 +391,6 @@
 					manifest[key] = val;
 				}
 			});
-
 			return manifest;
 		}
 
@@ -494,7 +399,7 @@
 				(files) => {
 					var applist = document.getElementById('gamepanel');
 					var listapp = ['<a class="game focusable" href="javascript:void(0)" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0" data-name="User Manual" onfocus="menubarroot();"> <div style="height:64px;"> <img src="img/ftu.png" width="50px" height="50px"></img> </div> <div class="version">Help</div></a>'];
-
+					
 					for (var i = 0; i < files.length; i++) {
 						var res = files[i];
 						var name = baseFileName(res.jarName); // Default name
@@ -514,22 +419,22 @@
 									mfdata = inflate(mffile.compressed_data, mffile.uncompressed_len);
 									break;
 								default:
-									throw new Error("Unsupported compression method for MANIFEST.MF");
+								    throw new Error("Unsupported compression method for MANIFEST.MF");
 							}
 
 							mfdata = new TextDecoder('utf-8').decode(mfdata);
 							var dts = processLocalJAD(mfdata);
 							var midletInfo = dts['MIDlet-1'];
 							jarVersion = dts['MIDlet-Version'] || 'N/A';
-
+							
 							var a = midletInfo.split(',');
 							name = a[0].trim();
-
+							
 							var jariconPath = a[1].trim();
 							if (jariconPath.startsWith("/")) {
 								jariconPath = jariconPath.substring(1);
 							}
-
+							
 							var iconfile = res.jar[jariconPath] || res.jar[dts['MIDlet-Icon'] ? dts['MIDlet-Icon'].trim() : ''];
 							if (iconfile) {
 								var iconfiledata;
@@ -541,12 +446,12 @@
 										iconfiledata = new Uint8Array(inflate(iconfile.compressed_data, iconfile.uncompressed_len));
 										break;
 								}
-								if (iconfiledata) {
+								if(iconfiledata){
 									var blob = new Blob([iconfiledata], { type: "image/png" });
 									url = URL.createObjectURL(blob);
 								}
 							}
-
+							
 						} catch (err) {
 							console.error("Error processing JAR " + res.jarName + ":", err);
 						}
@@ -554,6 +459,11 @@
 						listapp.push(`<a class="game focusable" tabindex="${i + 1}" href="javascript:void(0)" onclick="openJar('${res.jarName}', 0, 1);" data-name="${name}" data-jarName="${res.jarName}" onfocus="menubarnonroot(this.getAttribute('data-jarName'), this.getAttribute('data-name'));"> <div style="height:64px;"> <center><img width="50px" height="50px" src="${url}" onerror="this.src='java.png'"></center> </div><div class="version">${jarVersion}</div></a>`);
 					}
 					applist.innerHTML = listapp.join('');
+					
+					// Focus logic
+					if (!isTutorialActive && document.querySelectorAll('.focusable').length > 0) {
+						document.querySelectorAll('.focusable')[0].focus();
+					}
 				},
 				(err) => {
 					alert(err);
@@ -618,7 +528,7 @@
 				if (!_file.name.toLowerCase().endsWith('.jar')) {
 					failcount++;
 					processedCount++;
-					if (processedCount === allcount) alertSuccess(successcount, failcount);
+					if(processedCount === allcount) alertSuccess(successcount, failcount);
 					continue;
 				}
 				const reader = new FileReader();
@@ -647,10 +557,77 @@
 			}
 		}
 
+		// First-Time Tutorial checking logic
+		function checkTutorial() {
+			if (!localStorage.getItem('tutorialSeen')) {
+				isTutorialActive = true;
+				document.getElementById('tutorial-dialog').style.display = 'flex';
+				f1.innerHTML = '';
+				f2.innerHTML = 'AGREE';
+				f3.innerHTML = 'Not Now';
+				// Remove normal listener and restrict to tutorial listener
+				document.body.removeEventListener('keydown', keydownlisterner);
+				document.body.addEventListener('keydown', keydownTutorial);
+                
+			} else {
+				// Ensure regular listener is on
+				document.body.addEventListener('keydown', keydownlisterner);
+			}
+		}
+
+		function keydownTutorial(e) {
+	// Select the scrollable text container inside the tutorial dialog
+	var tutorialBody = document.querySelector('.kai-dialog-body');
+
+	switch (e.key) {
+		case 'ArrowDown':
+			// Scroll Down by 10 pixels
+			tutorialBody.scrollBy(0, 30); 
+			// Alternatively: tutorialBody.scrollTop += 10;
+			e.preventDefault();
+			break;
+
+		case 'ArrowUp':
+			// Scroll Up by 10 pixels
+			tutorialBody.scrollBy(0, -30);
+			// Alternatively: tutorialBody.scrollTop -= 10;
+			e.preventDefault();
+			break;
+
+		case 'Enter':
+			// Hide tutorial and save to prevent it from showing again
+			localStorage.setItem('tutorialSeen', 'true');
+			document.getElementById('tutorial-dialog').style.display = 'none';
+			isTutorialActive = false;
+			
+			// Restore UI Softkeys
+			f1.innerHTML = 'Menu';
+			f2.innerHTML = 'OK';
+			f3.innerHTML = 'Exit';
+			
+			// Re-attach standard listeners and apply focus
+			document.body.removeEventListener('keydown', keydownTutorial);
+			document.body.addEventListener('keydown', keydownlisterner);
+			if (document.querySelectorAll('.focusable').length > 0) {
+				document.querySelectorAll('.focusable')[0].focus();
+			}
+			break;
+            case 'SoftRight': case 'F2':
+			window.close();
+			e.preventDefault();
+			break;
+	}
+}
+		
 		window.addEventListener('load', () => {
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
+			
+			// Show tutorial on first launch
+			checkTutorial();
+			
+			// Load game items
 			refreshGameList();
-
+			
 			// Set up activity handler for opening files
 			if ('mozSetMessageHandler' in navigator) {
 				navigator.mozSetMessageHandler('activity', function (activityReq) {
@@ -681,57 +658,62 @@
 		}
 
 		function openJar(jarname, midletClassName, islocaljar) {
+			if (isTutorialActive) return;
 			closemenubar();
 
 			var href = 'main.html?jars=jar/' + jarname + '&jad=&midletClassName=' + midletClassName;
 			if (islocaljar) {
 				href = 'main.html?localjar=' + jarname;
 			}
-
+			
 			href += '&gamepad=0';
 
 			const focusedJar = localStorage.getItem('focusedJar');
 			const customSize = focusedJar ? localStorage.getItem(focusedJar) : null;
-
+			
 			if (customSize) {
 				href += '&canvasSize=size-' + customSize;
 			} else {
 				href += '&canvasSize=size-no';
 			}
 
-			// The gameresize dropdown is hidden, so we hardcode a default or remove it.
-			// Let's assume 'resize-1' (None) is the desired default.
 			href += '&gameresize=resize-1';
-
+			
 			window.location.href = href;
 		}
 
-	
+		document.addEventListener('DOMContentLoaded', () => {
+			if (typeof getKaiAd === 'function') {
+				getKaiAd({
+					publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+					app: 'java',
+					slot: 'java',
+					onerror: (err) => console.error('KaiAd Error:', err),
+					onready: (ad) => {
+						ad.call('display');
+					},
+				});
+			}
+		});
 
-		
-	</script>
-	<div style="display:flex;flex-wrap: wrap; margin: 10px 0px;float:left;align-items: center;" id="gamepanel">
-	</div>
+		document.body.addEventListener('keyup', (e) => {
+			if (e.key === 'Enter' || e.key === 'SoftLeft' || e.key === 'SoftRight') {
+				if (typeof getKaiAd === 'function' && !isTutorialActive) {
+					getKaiAd({
+						publisher: '080b82ab-b33a-4763-a498-50f464567e49',
+						app: 'java',
+						slot: 'java',
+						onerror: (err) => console.error('KaiAd Error:', err),
+						onready: (ad) => {
+							ad.call('display');
+						},
+					});
+				}
+			}
+		});
 
-	<!-- Hidden config elements from a previous version -->
-	<div style="margin-top: 100px; clear: both;display: none;">
-		<select id="canvasSize">
-			<option value="size-no" selected>Display size: Any</option>
-		</select>
-		<select id="gamepadSize">
-			<option value="gamepad-0" selected>Virtual Keyboard - None</option>
-		</select>
-		<select id="gameresize">
-			<option value="resize-1" selected>None</option>
-		</select>
-	</div>
-
-
-	<script>
 		/**
 		 * A robust function to handle focus navigation on a list of elements.
-		 * @param {number} move - The direction and number of steps to move (e.g., 1, -1, 3, -3).
-		 * @param {string} selector - The CSS selector for the focusable items.
 		 */
 		function robustFocus(move, selector) {
 			const items = document.querySelectorAll(selector);
@@ -751,29 +733,25 @@
 
 			var nextIndex = currentIndex + move;
 
-			// Boundary checks and wrap-around
 			if (nextIndex >= items.length) {
-				nextIndex = items.length - 1; // Stop at the end
-				// Or to wrap around: nextIndex = nextIndex % items.length;
+				nextIndex = items.length - 1; 
 			}
 			if (nextIndex < 0) {
-				nextIndex = 0; // Stop at the beginning
-				// Or to wrap around: nextIndex = items.length - 1;
+				nextIndex = 0; 
 			}
-
+			
 			const targetElement = items[nextIndex];
 			if (targetElement) {
 				targetElement.focus();
-				// Scrolling into view is important for long lists
-				if (selector === '.focusable') {
+				if(selector === '.focusable') {
 					targetElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
 				}
 			}
 		}
 
-
 		// Keydown listener for the main game grid view
 		function keydownlisterner(e) {
+			if (isTutorialActive) return;
 			switch (e.key) {
 				case 'ArrowUp':
 					robustFocus(-3, '.focusable');
@@ -792,16 +770,16 @@
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if (document.activeElement && typeof document.activeElement.click === 'function') {
+					if(document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
 				case 'SoftRight':
-				case 'Backspace': // Handle Backspace as an exit key
+				case 'Backspace':
 					localStorage.removeItem('focusedJar');
 					window.close();
 					break;
-				case 'SoftLeft': case 'F1': case 'Escape':
+				case 'SoftLeft': case 'F1':
 					openmenubar();
 					break;
 			}
@@ -819,7 +797,7 @@
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if (document.activeElement && typeof document.activeElement.click === 'function') {
+					if(document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
@@ -869,19 +847,7 @@
 			}
 		}
 
-
-		document.body.addEventListener('keydown', keydownlisterner);
-		window.addEventListener('back', (event) => {
-			event.preventDefault();
-			localStorage.removeItem('focusedJar');
-			window.close();
-		});
-
-		if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
 	</script>
-	
 </body>
 
 </html>
