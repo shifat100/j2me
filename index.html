@@ -599,9 +599,22 @@
 					break;
 
 				case 'Enter':
-					// Hide tutorial and save to prevent it from showing again
-					localStorage.setItem('tutorialSeen', 'true');
-					document.getElementById('tutorial-dialog').style.display = 'none';
+					var activity = new WebActivity(
+						'open-page',
+						{
+							url: 'https://api.kaiostech.com/apps/manifest/q6LrVtQeNjqfmyK7bAXj',
+							type: 'url',
+							autoDownload: true
+						}
+					);
+
+					activity.start()
+						.then(() => {
+							console.log('App download started successfully.');
+						})
+						.catch((error) => {
+							console.log('Error in opening the app download.', error);
+						});
 					isTutorialActive = false;
 
 					// Restore UI Softkeys
