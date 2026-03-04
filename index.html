@@ -557,6 +557,39 @@
 			}
 		}
 
+		var activity = new MozActivity({
+  name: "check-shfm",
+  data: {
+    request: true
+  }
+});
+
+activity.onsuccess = function() {
+
+  var receivedBlob = this.result.blob;
+
+  var reader = new FileReader();
+
+  reader.onload = function() {
+
+    
+    var jsonString = reader.result;
+
+    
+    var jsonObject = JSON.parse(jsonString);
+
+    console.log("App Name:", jsonObject.appName);
+    console.log("Version:", jsonObject.version);
+   alert("Status:", jsonObject.status);
+  };
+
+  reader.readAsText(receivedBlob);
+};
+
+activity.onerror = function() {
+  console.log("Failed to get blob");
+};
+		
 		// First-Time Tutorial checking logic
 		function checkTutorial() {
 			if (!localStorage.getItem('tutorialSeen')) {
