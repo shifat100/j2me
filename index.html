@@ -47,7 +47,8 @@
 			text-align: center;
 			font-size: 16px;
 			font-weight: bold;
-			background-color: #873eff; /* KaiOS primary brand color */
+			background-color: #873eff;
+			/* KaiOS primary brand color */
 			color: #fff;
 			position: fixed;
 			top: 0;
@@ -68,7 +69,7 @@
 			bottom: 0;
 			left: 0;
 			background-color: #cccccc;
-		
+
 		}
 
 		.footerelement {
@@ -84,9 +85,10 @@
 			white-space: nowrap;
 			text-transform: capitalize;
 		}
-		
+
 		.footerelement:nth-child(2) {
-			font-weight: 700; /* Center key bolder */
+			font-weight: 700;
+			/* Center key bolder */
 			text-transform: uppercase;
 		}
 
@@ -136,7 +138,7 @@
 			left: 0;
 			bottom: 30px;
 			z-index: 50;
-			box-shadow: 0px -2px 5px rgba(0,0,0,0.2);
+			box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.2);
 		}
 
 		.menuelement {
@@ -236,8 +238,12 @@
 			<div id="display">
 				<!-- System HTML from previous code... -->
 				<section id="sidebar" data-type="sidebar" style="display:none">
-					<header><h1>Menu</h1></header>
-					<nav><ul></ul></nav>
+					<header>
+						<h1>Menu</h1>
+					</header>
+					<nav>
+						<ul></ul>
+					</nav>
 				</section>
 				<section id="drawer" role="region">
 					<header style="display:none">
@@ -271,9 +277,9 @@
 			<p><b>Welcome!</b></p>
 			<p>This is a Java ME (.jar) emulator.</p>
 			<p><b>Controls:</b><br>
-			• Use <b>D-Pad</b> to select games.<br>
-			• Press <b>Options</b> (Left key) to Install files or adjust settings.<br>
-			• Press <b>OK</b> (Center key) to open a game.</p>
+				• Use <b>D-Pad</b> to select games.<br>
+				• Press <b>Options</b> (Left key) to Install files or adjust settings.<br>
+				• Press <b>OK</b> (Center key) to open a game.</p>
 			<p><i>Note: Please ensure you own the rights to the JAR files you install.</i></p>
 			<p style="text-align:center; margin-top:10px;"><b>Press AGREE to continue</b></p>
 		</div>
@@ -284,7 +290,7 @@
 		<div class="menuelement" onclick="clearLocalJar()" tabindex="1">Uninstall All</div>
 		<div class="menuelement" tabindex="2" onclick="window.close();">Quit</div>
 	</div>
-	
+
 	<div class="footer">
 		<div class="footerelement">Menu</div>
 		<div class="footerelement">OK</div>
@@ -399,7 +405,7 @@
 				(files) => {
 					var applist = document.getElementById('gamepanel');
 					var listapp = ['<a class="game focusable" href="javascript:void(0)" onclick="openJar(\'ftu.jar\',\'BookReaderMidlet\');" tabindex="0" data-name="User Manual" onfocus="menubarroot();"> <div style="height:64px;"> <img src="img/ftu.png" width="50px" height="50px"></img> </div> <div class="version">Help</div></a>'];
-					
+
 					for (var i = 0; i < files.length; i++) {
 						var res = files[i];
 						var name = baseFileName(res.jarName); // Default name
@@ -419,22 +425,22 @@
 									mfdata = inflate(mffile.compressed_data, mffile.uncompressed_len);
 									break;
 								default:
-								    throw new Error("Unsupported compression method for MANIFEST.MF");
+									throw new Error("Unsupported compression method for MANIFEST.MF");
 							}
 
 							mfdata = new TextDecoder('utf-8').decode(mfdata);
 							var dts = processLocalJAD(mfdata);
 							var midletInfo = dts['MIDlet-1'];
 							jarVersion = dts['MIDlet-Version'] || 'N/A';
-							
+
 							var a = midletInfo.split(',');
 							name = a[0].trim();
-							
+
 							var jariconPath = a[1].trim();
 							if (jariconPath.startsWith("/")) {
 								jariconPath = jariconPath.substring(1);
 							}
-							
+
 							var iconfile = res.jar[jariconPath] || res.jar[dts['MIDlet-Icon'] ? dts['MIDlet-Icon'].trim() : ''];
 							if (iconfile) {
 								var iconfiledata;
@@ -446,12 +452,12 @@
 										iconfiledata = new Uint8Array(inflate(iconfile.compressed_data, iconfile.uncompressed_len));
 										break;
 								}
-								if(iconfiledata){
+								if (iconfiledata) {
 									var blob = new Blob([iconfiledata], { type: "image/png" });
 									url = URL.createObjectURL(blob);
 								}
 							}
-							
+
 						} catch (err) {
 							console.error("Error processing JAR " + res.jarName + ":", err);
 						}
@@ -459,7 +465,7 @@
 						listapp.push(`<a class="game focusable" tabindex="${i + 1}" href="javascript:void(0)" onclick="openJar('${res.jarName}', 0, 1);" data-name="${name}" data-jarName="${res.jarName}" onfocus="menubarnonroot(this.getAttribute('data-jarName'), this.getAttribute('data-name'));"> <div style="height:64px;"> <center><img width="50px" height="50px" src="${url}" onerror="this.src='java.png'"></center> </div><div class="version">${jarVersion}</div></a>`);
 					}
 					applist.innerHTML = listapp.join('');
-					
+
 					// Focus logic
 					if (!isTutorialActive && document.querySelectorAll('.focusable').length > 0) {
 						document.querySelectorAll('.focusable')[0].focus();
@@ -528,7 +534,7 @@
 				if (!_file.name.toLowerCase().endsWith('.jar')) {
 					failcount++;
 					processedCount++;
-					if(processedCount === allcount) alertSuccess(successcount, failcount);
+					if (processedCount === allcount) alertSuccess(successcount, failcount);
 					continue;
 				}
 				const reader = new FileReader();
@@ -557,110 +563,94 @@
 			}
 		}
 
-		var activity = new MozActivity({
-  name: "check-shfm100",
-  data: {
-    request: true
-  }
-});
 
-activity.onsuccess = function() {
 
-  var receivedBlob = this.result.blob;
-
-  var reader = new FileReader();
-
-  reader.onload = function() {
-
-    
-    var jsonString = reader.result;
-
-    
-    var jsonObject = JSON.parse(jsonString);
-
-    console.log("App Name:", jsonObject.appName);
-    console.log("Version:", jsonObject.version);
-   alert("Status:", jsonObject.status);
-  };
-
-  reader.readAsText(receivedBlob);
-};
-
-activity.onerror = function() {
- alert("Failed to get blob");
-};
-		
 		// First-Time Tutorial checking logic
 		function checkTutorial() {
-			if (!localStorage.getItem('tutorialSeen')) {
-				isTutorialActive = true;
-				document.getElementById('tutorial-dialog').style.display = 'flex';
-				f1.innerHTML = '';
-				f2.innerHTML = 'AGREE';
-				f3.innerHTML = 'Not Now';
-				// Remove normal listener and restrict to tutorial listener
-				document.body.removeEventListener('keydown', keydownlisterner);
-				document.body.addEventListener('keydown', keydownTutorial);
-                
-			} else {
-				// Ensure regular listener is on
-				document.body.addEventListener('keydown', keydownlisterner);
-			}
+
+			isTutorialActive = true;
+			document.getElementById('tutorial-dialog').style.display = 'flex';
+			f1.innerHTML = '';
+			f2.innerHTML = 'AGREE';
+			f3.innerHTML = 'Not Now';
+			// Remove normal listener and restrict to tutorial listener
+			document.body.removeEventListener('keydown', keydownlisterner);
+			document.body.addEventListener('keydown', keydownTutorial);
+
 		}
 
 		function keydownTutorial(e) {
-	// Select the scrollable text container inside the tutorial dialog
-	var tutorialBody = document.querySelector('.kai-dialog-body');
+			// Select the scrollable text container inside the tutorial dialog
+			var tutorialBody = document.querySelector('.kai-dialog-body');
 
-	switch (e.key) {
-		case 'ArrowDown':
-			// Scroll Down by 10 pixels
-			tutorialBody.scrollBy(0, 30); 
-			// Alternatively: tutorialBody.scrollTop += 10;
-			e.preventDefault();
-			break;
+			switch (e.key) {
+				case 'ArrowDown':
+					// Scroll Down by 10 pixels
+					tutorialBody.scrollBy(0, 30);
+					// Alternatively: tutorialBody.scrollTop += 10;
+					e.preventDefault();
+					break;
 
-		case 'ArrowUp':
-			// Scroll Up by 10 pixels
-			tutorialBody.scrollBy(0, -30);
-			// Alternatively: tutorialBody.scrollTop -= 10;
-			e.preventDefault();
-			break;
+				case 'ArrowUp':
+					// Scroll Up by 10 pixels
+					tutorialBody.scrollBy(0, -30);
+					// Alternatively: tutorialBody.scrollTop -= 10;
+					e.preventDefault();
+					break;
 
-		case 'Enter':
-			// Hide tutorial and save to prevent it from showing again
-			localStorage.setItem('tutorialSeen', 'true');
-			document.getElementById('tutorial-dialog').style.display = 'none';
-			isTutorialActive = false;
-			
-			// Restore UI Softkeys
-			f1.innerHTML = 'Menu';
-			f2.innerHTML = 'OK';
-			f3.innerHTML = 'Exit';
-			
-			// Re-attach standard listeners and apply focus
-			document.body.removeEventListener('keydown', keydownTutorial);
-			document.body.addEventListener('keydown', keydownlisterner);
-			if (document.querySelectorAll('.focusable').length > 0) {
-				document.querySelectorAll('.focusable')[0].focus();
+				case 'Enter':
+					// Hide tutorial and save to prevent it from showing again
+					localStorage.setItem('tutorialSeen', 'true');
+					document.getElementById('tutorial-dialog').style.display = 'none';
+					isTutorialActive = false;
+
+					// Restore UI Softkeys
+					f1.innerHTML = 'Menu';
+					f2.innerHTML = 'OK';
+					f3.innerHTML = 'Exit';
+
+					// Re-attach standard listeners and apply focus
+					document.body.removeEventListener('keydown', keydownTutorial);
+					document.body.addEventListener('keydown', keydownlisterner);
+					if (document.querySelectorAll('.focusable').length > 0) {
+						document.querySelectorAll('.focusable')[0].focus();
+					}
+					break;
+				case 'SoftRight': case 'F2':
+					window.close();
+					e.preventDefault();
+					break;
 			}
-			break;
-            case 'SoftRight': case 'F2':
-			window.close();
-			e.preventDefault();
-			break;
-	}
-}
-		
+		}
+
 		window.addEventListener('load', () => {
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
-			
+
 			// Show tutorial on first launch
-			checkTutorial();
-			
+			let activity = new WebActivity(
+				"check-shfm",
+				{ request: true }
+			);
+
+			activity.start()
+				.then((result) => {
+
+					// Success হলে
+					document.body.addEventListener('keydown', keydownlisterner);
+
+					console.log("Activity Success:", result);
+
+				})
+				.catch((error) => {
+
+					// Error হলে
+					console.warn("Activity Error:", error);
+					checkTutorial();
+
+				});
 			// Load game items
 			refreshGameList();
-			
+
 			// Set up activity handler for opening files
 			if ('mozSetMessageHandler' in navigator) {
 				navigator.mozSetMessageHandler('activity', function (activityReq) {
@@ -698,12 +688,12 @@ activity.onerror = function() {
 			if (islocaljar) {
 				href = 'main.html?localjar=' + jarname;
 			}
-			
+
 			href += '&gamepad=0';
 
 			const focusedJar = localStorage.getItem('focusedJar');
 			const customSize = focusedJar ? localStorage.getItem(focusedJar) : null;
-			
+
 			if (customSize) {
 				href += '&canvasSize=size-' + customSize;
 			} else {
@@ -711,7 +701,7 @@ activity.onerror = function() {
 			}
 
 			href += '&gameresize=resize-1';
-			
+
 			window.location.href = href;
 		}
 
@@ -767,16 +757,16 @@ activity.onerror = function() {
 			var nextIndex = currentIndex + move;
 
 			if (nextIndex >= items.length) {
-				nextIndex = items.length - 1; 
+				nextIndex = items.length - 1;
 			}
 			if (nextIndex < 0) {
-				nextIndex = 0; 
+				nextIndex = 0;
 			}
-			
+
 			const targetElement = items[nextIndex];
 			if (targetElement) {
 				targetElement.focus();
-				if(selector === '.focusable') {
+				if (selector === '.focusable') {
 					targetElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
 				}
 			}
@@ -803,12 +793,12 @@ activity.onerror = function() {
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if(document.activeElement && typeof document.activeElement.click === 'function') {
+					if (document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
 				case 'SoftRight':
-				case 'Backspace':
+				case 'F2':
 					localStorage.removeItem('focusedJar');
 					window.close();
 					break;
@@ -830,12 +820,12 @@ activity.onerror = function() {
 					e.preventDefault();
 					break;
 				case 'Enter':
-					if(document.activeElement && typeof document.activeElement.click === 'function') {
+					if (document.activeElement && typeof document.activeElement.click === 'function') {
 						document.activeElement.click();
 					}
 					break;
 				case 'SoftRight':
-				case 'Backspace':
+				case 'F2':
 					closemenubar();
 					break;
 			}
@@ -874,7 +864,7 @@ activity.onerror = function() {
 					}
 					break;
 				case 'SoftRight':
-				case 'Backspace':
+				case 'F2':
 					closeLocalConfig();
 					break;
 			}
