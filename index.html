@@ -270,6 +270,7 @@
 		</div>
 	</div>
 
+	<!-- Tutorial / Disclaimer Screen (KaiUI) -->
 	<div id="tutorial-dialog" style="display: none;">
 		<div class="kai-dialog-title">SHFM Required</div>
 		<div class="kai-dialog-body">
@@ -325,6 +326,23 @@
 		var tmpf3 = '';
 		var tmpf2 = '';
 		var isTutorialActive = false;
+
+		function getKaiOSVersion() {
+			var ua = navigator.userAgent;
+
+			if (ua.indexOf("KaiOS/3") !== -1) {
+				return "3";
+			} else if (ua.indexOf("KaiOS/2") !== -1) {
+				return "2";
+			} else if (ua.indexOf("KaiOS/4") !== -1) {
+				return "4";
+			} else {
+				return "0";
+			}
+		}
+		var kaiosVersion = getKaiOSVersion();
+
+
 
 		function openmenubar() {
 			if (isTutorialActive) return;
@@ -613,30 +631,46 @@
 					break;
 
 				case 'Enter':
-					var activity = new WebActivity(
-						'open-page',
-						{
-							url: 'https://api.kaiostech.com/apps/manifest/q6LrVtQeNjqfmyK7bAXj',
-							type: 'url',
-							autoDownload: true
-						}
-					);
-
-					activity.start()
-						.then(() => {
-							console.log('App download started successfully.');
-						})
-						.catch((error) => {
-							console.log('Error in opening the app download.', error);
+					if (kaiosVersion == '3') {
+						var activity = new WebActivity(
+							'open-page',
+							{
+								url: 'https://api.kaiostech.com/apps/manifest/q6LrVtQeNjqfmyK7bAXj',
+								type: 'url',
+								autoDownload: true
+							}
+						); activity.start()
+							.then(() => {
+								console.log('App download started successfully.');
+							})
+							.catch((error) => {
+								console.log('Error in opening the app download.', error);
+							});
+					} else if (kaiosVersion == '2') {
+						var activity = new MozActivity({
+							name: 'open-page',
+							data: {
+								url: 'https://api.kaiostech.com/apps/manifest/q6LrVtQeNjqfmyK7bAXj',
+								type: 'url',
+								autoDownload: true
+							}
 						});
+						activity.onerror = () => {
+							console.log('Error in opening the app download.');
+						};
+						activity.onsuccess = () => {
+							console.log('App download started successfully.');
+						};
+					} else {
+						console.log('you are using web browser');
+					}
 					isTutorialActive = false;
 
-					// Restore UI Softkeys
 					f1.innerHTML = 'Menu';
 					f2.innerHTML = 'OK';
 					f3.innerHTML = 'Exit';
 
-					// Re-attach standard listeners and apply focus
+
 					document.body.removeEventListener('keydown', keydownTutorial);
 					document.body.addEventListener('keydown', keydownlisterner);
 					if (document.querySelectorAll('.focusable').length > 0) {
@@ -653,28 +687,34 @@
 		window.addEventListener('load', () => {
 			document.getElementById('jarFileupload').addEventListener('change', onUploadFile);
 
-			// Show tutorial on first launch
-			let activity = new WebActivity(
-				"check-shfm",
-				{ request: true }
-			);
-
-			activity.start()
-				.then((result) => {
-
-					// Success হলে
-					document.body.addEventListener('keydown', keydownlisterner);
-
-					console.log("Activity Success:", result);
-
-				})
-				.catch((error) => {
-
-					// Error হলে
-					console.warn("Activity Error:", error);
-					checkTutorial();
-
+			if (kaiosVersion == '2') {
+				var activity = new MozActivity({
+					name: 'check-shfm',
+					data: { request: true }
 				});
+				activity.onsuccess = function () {
+					document.body.addEventListener('keydown', keydownlisterner);
+				};
+				activity.onerror = function () {
+					checkTutorial();
+				};
+			} else if (kaiosVersion == '3') {
+				var activity = new WebActivity(
+					'check-shfm',
+					{ request: true }
+				); activity.start()
+					.then((result) => {
+						document.body.addEventListener('keydown', keydownlisterner);
+						console.log("Activity Success:", result);
+					})
+					.catch((error) => {
+						console.warn("Activity Error:", error);
+						checkTutorial();
+					});
+			} else {
+				console.log('checking tutorial');
+			}
+
 			// Load game items
 			refreshGameList();
 
